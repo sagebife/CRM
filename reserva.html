@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nova Reserva | Turismundo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body class="bg-gray-50 text-gray-900 font-sans pb-24">
+
+    <!-- Header Simples -->
+    <header class="bg-blue-900 text-white p-4 flex items-center shadow-lg">
+        <button class="mr-4 text-xl"><i class="fas fa-arrow-left"></i></button>
+        <h1 class="text-xl font-bold">Nova Reserva</h1>
+    </header>
+
+    <main class="p-4 max-w-2xl mx-auto space-y-6">
+
+        <!-- SEÇÃO 1: DADOS DO CLIENTE -->
+        <section class="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+            <h2 class="text-md font-bold text-blue-900 mb-4"><i class="fas fa-user mr-2"></i>Dados do Cliente</h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Nome Completo</label>
+                    <input type="text" placeholder="Ex: João Silva" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-900">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">WhatsApp</label>
+                        <input type="tel" placeholder="+55..." class="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Qtd. Passageiros</label>
+                        <input type="number" value="2" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Hotel em Buenos Aires</label>
+                    <input type="text" placeholder="Ex: Hilton Puerto Madero" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none">
+                </div>
+            </div>
+        </section>
+
+        <!-- SEÇÃO 2: CHEGADA (INBOUND TRANSFER) -->
+        <section class="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+            <h2 class="text-md font-bold text-green-600 mb-4"><i class="fas fa-plane-arrival mr-2"></i>Traslado de Chegada</h2>
+            <div class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Nº do Voo</label>
+                        <input type="text" placeholder="Ex: G37680" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Aeroporto</label>
+                        <select class="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none">
+                            <option>Ezeiza (EZE)</option>
+                            <option>Aeroparque (AEP)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Data e Hora</label>
+                        <input type="datetime-local" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Motorista</label>
+                        <select class="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none">
+                            <option>Selecionar Motorista...</option>
+                            <option>Paulo (Spin)</option>
+                            <option>Jorge (Corolla)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SEÇÃO 3: PASSEIOS -->
+        <section class="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+            <h2 class="text-md font-bold text-orange-500 mb-4"><i class="fas fa-camera mr-2"></i>Passeios Contratados</h2>
+            <div class="grid grid-cols-2 gap-3">
+                <label class="flex items-center p-3 bg-gray-50 rounded-lg border border-gray-200 cursor-pointer">
+                    <input type="checkbox" class="mr-3 h-5 w-5 text-blue-900 rounded">
+                    <span class="text-sm font-medium">City Tour</span>
+                </label>
+                <label class="flex items-center p-3 bg-gray-50 rounded-lg border border-gray-200 cursor-pointer">
+                    <input type="checkbox" class="mr-3 h-5 w-5 text-blue-900 rounded">
+                    <span class="text-sm font-medium">Delta do Tigre</span>
+                </label>
+                <label class="flex items-center p-3 bg-gray-50 rounded-lg border border-gray-200 cursor-pointer">
+                    <input type="checkbox" class="mr-3 h-5 w-5 text-blue-900 rounded">
+                    <span class="text-sm font-medium">Show de Tango</span>
+                </label>
+                <label class="flex items-center p-3 bg-gray-50 rounded-lg border border-gray-200 cursor-pointer">
+                    <input type="checkbox" class="mr-3 h-5 w-5 text-blue-900 rounded">
+                    <span class="text-sm font-medium">Colonia (Uruguai)</span>
+                </label>
+            </div>
+        </section>
+
+        <!-- SEÇÃO 4: FINANCEIRO -->
+        <section class="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+            <h2 class="text-md font-bold text-gray-800 mb-4"><i class="fas fa-wallet mr-2"></i>Financeiro</h2>
+            <div class="grid grid-cols-3 gap-3">
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Valor Total</label>
+                    <input type="number" placeholder="250" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Moeda</label>
+                    <select class="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none">
+                        <option>BRL (R$)</option>
+                        <option>USD ($)</option>
+                        <option>ARS ($)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Status</label>
+                    <select class="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none">
+                        <option>Pendente</option>
+                        <option>Metade Pago</option>
+                        <option>Pago Total</option>
+                    </select>
+                </div>
+            </div>
+        </section>
+
+        <!-- BOTÕES DE AÇÃO -->
+        <div class="flex gap-4">
+            <button class="w-1/2 py-4 bg-gray-200 text-gray-700 font-bold rounded-xl hover:bg-gray-300 transition">Cancelar</button>
+            <button class="w-1/2 py-4 bg-blue-900 text-white font-bold rounded-xl hover:bg-blue-800 transition shadow-lg">Salvar Reserva</button>
+        </div>
+
+    </main>
+
+</body>
+</html>

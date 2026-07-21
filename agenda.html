@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agenda Operacional | Turismundo CRM</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom scrollbar to match our elegant UI */
+        ::-webkit-scrollbar {
+            height: 5px;
+            width: 5px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-950 pb-24 lg:pb-0">
+
+    <!-- Header Desktop/Mobile -->
+    <header class="bg-blue-900 text-white p-4 sticky top-0 z-40 shadow-md">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <a href="#" class="text-white hover:text-gray-300 transition text-lg">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <span class="h-6 w-px bg-blue-700"></span>
+                <h1 class="text-xl font-bold tracking-wide flex items-center gap-2">
+                    <i class="fas fa-calendar-day"></i> Agenda do Dia
+                </h1>
+            </div>
+            <div class="hidden md:flex space-x-6">
+                <a href="#" class="text-blue-200 hover:text-white transition">Dashboard</a>
+                <a href="#" class="text-white font-semibold border-b-2 border-white pb-1">Agenda</a>
+                <a href="#" class="text-blue-200 hover:text-white transition">Motoristas</a>
+                <a href="#" class="text-blue-200 hover:text-white transition">Financeiro</a>
+            </div>
+            <button onclick="openQuickAddModal()" class="bg-emerald-500 hover:bg-emerald-600 text-white px-3.5 py-1.5 rounded-xl font-bold text-sm flex items-center gap-1.5 transition">
+                <i class="fas fa-plus"></i> <span class="hidden sm:inline">Nova Reserva</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="max-w-4xl mx-auto p-4 lg:p-6 space-y-6">
+
+        <!-- Seletor de Datas (Hoje é Terça, 14 Jul 2026) -->
+        <section class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+            <div class="flex items-center justify-between mb-3">
+                <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Selecione o Dia</span>
+                <span class="text-sm font-semibold text-blue-900">Julho 2026</span>
+            </div>
+            
+            <!-- Carrossel de Dias Horizontal (Deslize horizontal no mobile) -->
+            <div class="flex gap-2 overflow-x-auto pb-2 justify-between md:justify-start">
+                <!-- Dia Anterior -->
+                <button onclick="selectDay(12, 'Dom')" class="day-btn min-w-[65px] p-3 rounded-xl border border-gray-100 flex flex-col items-center justify-center transition hover:bg-blue-50/50" id="day-12">
+                    <span class="text-xs text-gray-500 font-medium">Dom</span>
+                    <span class="text-lg font-bold text-gray-800">12</span>
+                </button>
+                <button onclick="selectDay(13, 'Seg')" class="day-btn min-w-[65px] p-3 rounded-xl border border-gray-100 flex flex-col items-center justify-center transition hover:bg-blue-50/50" id="day-13">
+                    <span class="text-xs text-gray-500 font-medium">Seg</span>
+                    <span class="text-lg font-bold text-gray-800">13</span>
+                </button>
+                <!-- HOJE -->
+                <button onclick="selectDay(14, 'Ter')" class="day-btn min-w-[65px] p-3 rounded-xl bg-blue-900 border border-blue-900 text-white flex flex-col items-center justify-center transition shadow-md shadow-blue-900/25" id="day-14">
+                    <span class="text-xs text-blue-200 font-medium">HOJE</span>
+                    <span class="text-lg font-bold">14</span>
+                </button>
+                <!-- Próximos Dias -->
+                <button onclick="selectDay(15, 'Qua')" class="day-btn min-w-[65px] p-3 rounded-xl border border-gray-100 flex flex-col items-center justify-center transition hover:bg-blue-50/50" id="day-15">
+                    <span class="text-xs text-gray-500 font-medium">Qua</span>
+                    <span class="text-lg font-bold text-gray-800">15</span>
+                </button>
+                <button onclick="selectDay(16, 'Qui')" class="day-btn min-w-[65px] p-3 rounded-xl border border-gray-100 flex flex-col items-center justify-center transition hover:bg-blue-50/50" id="day-16">
+                    <span class="text-xs text-gray-500 font-medium">Qui</span>
+                    <span class="text-lg font-bold text-gray-800">16</span>
+                </button>
+                <button onclick="selectDay(17, 'Sex')" class="day-btn min-w-[65px] p-3 rounded-xl border border-gray-100 flex flex-col items-center justify-center transition hover:bg-blue-50/50" id="day-17">
+                    <span class="text-xs text-gray-500 font-medium">Sex</span>
+                    <span class="text-lg font-bold text-gray-800">17</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- Filtros Rápidos -->
+        <section class="flex gap-2">
+            <button onclick="filterCategory('todos')" id="btn-filter-todos" class="filter-btn px-4 py-2 rounded-xl bg-gray-900 text-white text-xs font-bold transition shadow-sm">
+                Todos (<span id="count-todos">0</span>)
+            </button>
+            <button onclick="filterCategory('transfer')" id="btn-filter-transfer" class="filter-btn px-4 py-2 rounded-xl bg-white border border-gray-200 text-gray-600 text-xs font-bold transition hover:bg-gray-50">
+                🚐 Transfers (<span id="count-transfers">0</span>)
+            </button>
+            <button onclick="filterCategory('passeio')" id="btn-filter-passeio" class="filter-btn px-4 py-2 rounded-xl bg-white border border-gray-200 text-gray-600 text-xs font-bold transition hover:bg-gray-50">
+                📸 Passeios (<span id="count-passeios">0</span>)
+            </button>
+        </section>
+
+        <!-- Linha do Tempo de Compromissos -->
+        <section class="space-y-4">
+            <div class="flex items-center justify-between">
+                <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider" id="selected-day-label">Agenda: Terça-feira, 14 de Julho</h3>
+                <span class="text-xs text-emerald-600 font-bold bg-emerald-50 px-2 py-1 rounded-full flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span> Atualizado agora
+                </span>
+            </div>
+
+            <!-- Container da Lista de Cards de Horários -->
+            <div id="timelineContainer" class="space-y-4 relative border-l-2 border-gray-200 pl-4 ml-3">
+                <!-- Os itens serão injetados dinamicamente via JS -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Notificação Flutuante (Toast) -->
+    <div id="toast" class="fixed bottom-20 lg:bottom-6 right-6 bg-gray-900 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 transform translate-y-20 opacity-0 transition duration-300 ease-out z-50">
+        <i class="fas fa-check-circle text-emerald-400" id="toast-icon"></i>
+        <span id="toastMessage">Ação realizada com sucesso!</span>
+    </div>
+
+    <!-- Navegação Mobile Inferior -->
+    <nav class="md:hidden fixed bottom-0 w-full bg-white border-t border-gray-200 flex justify-around p-3 shadow-lg z-50">
+        <button class="text-gray-400 py-1 flex flex-col items-center"><i class="fas fa-home text-lg"></i><span class="text-[10px] mt-0.5">Início</span></button>
+        <button class="text-blue-900 py-1 flex flex-col items-center"><i class="fas fa-calendar-alt text-lg"></i><span class="text-[10px] mt-0.5 font-bold">Agenda</span></button>
+        <button class="text-gray-400 py-1 flex flex-col items-center"><i class="fas fa-users text-lg"></i><span class="text-[10px] mt-0.5">Motoristas</span></button>
+        <button class="text-gray-400 py-1 flex flex-col items-center"><i class="fas fa-wallet text-lg"></i><span class="text-[10px] mt-0.5">Financeiro</span></button>
+    </nav>
+
+    <!-- Modal Rápido de Agendamento (Simulado) -->
+    <div id="quickModal" class="fixed inset-0 bg-gray-950/50 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4 opacity-0 pointer-events-none transition duration-200">
+        <div class="bg-white w-full max-w-md rounded-t-2xl sm:rounded-2xl p-6 shadow-2xl space-y-4">
+            <div class="flex justify-between items-center border-b border-gray-100 pb-3">
+                <h3 class="font-bold text-gray-900 text-lg">Agendamento Rápido</h3>
+                <button onclick="closeQuickAddModal()" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times text-lg"></i></button>
+            </div>
+            
+            <form onsubmit="saveQuickReserva(event)" class="space-y-3">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Cliente</label>
+                        <input type="text" id="modalClient" required placeholder="Ex: Lucas Ramos" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">WhatsApp</label>
+                        <input type="tel" id="modalPhone" required placeholder="Ex: 5511..." class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Hora</label>
+                        <input type="time" id="modalTime" required value="12:00" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Tipo</label>
+                        <select id="modalType" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm">
+                            <option value="transfer">🚐 Transfer IN/OUT</option>
+                            <option value="passeio">📸 Passeio Turístico</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Descrição / Detalhe</label>
+                    <input type="text" id="modalDesc" required placeholder="Ex: Aeroparque -> Hotel NH ou City Tour 4h" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Motorista</label>
+                        <select id="modalDriver" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm">
+                            <option value="Paulo (Spin)">Paulo (Spin)</option>
+                            <option value="Jorge (Corolla)">Jorge (Corolla)</option>
+                            <option value="Carlos (Sprinter)">Carlos (Sprinter)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Voo (Opcional)</label>
+                        <input type="text" id="modalFlight" placeholder="Ex: AR1250" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm">
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full py-3 bg-blue-900 text-white font-bold rounded-xl hover:bg-blue-800 transition shadow-md">
+                    Confirmar e Agendar
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Banco de dados local para simular a agenda do sistema de forma totalmente funcional
+        let databaseAgenda = [
+            // DIA 13 (Ontem - Histórico)
+            { id: 1, dia: 13, hora: "08:15", tipo: "transfer", cliente: "Marcos Vinicius", pax: "3 pax", localizacao: "Ezeiza (EZE) ✈ Hotel Savoy", motorista: "Paulo (Spin)", status: "concluido", voo: "G3 7680", statusVoo: "Finalizado", telefone: "551199999999" },
+            { id: 2, dia: 13, hora: "14:00", tipo: "passeio", cliente: "Família Barbosa", pax: "6 pax", localizacao: "Delta do Tigre (Passeio Barco)", motorista: "Carlos (Sprinter)", status: "concluido", voo: "", statusVoo: "", telefone: "5521988888888" },
+            
+            // DIA 14 (HOJE)
+            { id: 3, dia: 14, hora: "08:00", tipo: "transfer", cliente: "João Silva", pax: "2 pax", localizacao: "Ezeiza (EZE) ✈ Hilton Puerto Madero", motorista: "Paulo (Spin)", status: "concluido", voo: "TK15", statusVoo: "Pousado", telefone: "5511977777777" },
+            { id: 4, dia: 14, hora: "10:30", tipo: "passeio", cliente: "Maria Souza", pax: "4 pax", localizacao: "City Tour Clássico Buenos Aires", motorista: "Jorge (Corolla)", status: "em-andamento", voo: "", statusVoo: "", telefone: "5511966666666" },
+            { id: 5, dia: 14, hora: "15:20", tipo: "transfer", cliente: "Carlos Gomez", pax: "1 pax", localizacao: "Aeroparque (AEP) ✈ Hotel NH City", motorista: "Paulo (Spin)", status: "atrasado", voo: "AR1250", statusVoo: "+45 min Atrasado", telefone: "5531955555555" },
+            { id: 6, dia: 14, hora: "19:00", tipo: "transfer", cliente: "Ana Lima", pax: "2 pax", localizacao: "Faena Hotel ✈ Ezeiza (EZE)", motorista: "Jorge (Corolla)", status: "confirmado", voo: "LA2415", statusVoo: "Programado", telefone: "5521944444444" },
+            
+            // DIA 15 (Amanhã)
+            { id: 7, dia: 15, hora: "09:00", tipo: "transfer", cliente: "Luciana Costa", pax: "3 pax", localizacao: "Ezeiza (EZE) ✈ Hotel Sheraton", motorista: "Jorge (Corolla)", status: "confirmado", voo: "AR1344", statusVoo: "No horário", telefone: "5511933333333" },
+            { id: 8, dia: 15, hora: "21:00", tipo: "passeio", cliente: "Roberto Albuquerque", pax: "2 pax", localizacao: "Show de Tango (Piazzolla Tango)", motorista: "Carlos (Sprinter)", status: "confirmado", voo: "", statusVoo: "", telefone: "5511922222222" }
+        ];
+
+        let selectedDay = 14; // Hoje por padrão
+        let selectedCategory = 'todos';
+
+        // Mapeador de nomes completos dos dias da semana
+        const weekNames = {
+            12: "Domingo, 12 de Julho",
+            13: "Segunda-feira, 13 de Julho",
+            14: "Terça-feira, 14 de Julho (Hoje)",
+            15: "Quarta-feira, 15 de Julho",
+            16: "Quinta-feira, 16 de Julho",
+            17: "Sexta-feira, 17 de Julho"
+        };
+
+        function renderAgenda() {
+            const container = document.getElementById('timelineContainer');
+            container.innerHTML = '';
+
+            // Filtragem
+            let list = databaseAgenda.filter(item => item.dia === selectedDay);
+            if (selectedCategory !== 'todos') {
+                list = list.filter(item => item.tipo === selectedCategory);
+            }
+
+            // Ordena por horário
+            list.sort((a, b) => a.hora.localeCompare(b.hora));
+
+            // Atualiza o cabeçalho descritivo
+            document.getElementById('selected-day-label').innerText = weekNames[selectedDay] || `Dia ${selectedDay}`;
+
+            // Atualiza contadores dos filtros
+            const totalDia = databaseAgenda.filter(item => item.dia === selectedDay);
+            document.getElementById('count-todos').innerText = totalDia.length;
+            document.getElementById('count-transfers').innerText = totalDia.filter(item => item.tipo === 'transfer').length;
+            document.getElementById('count-passeios').innerText = totalDia.filter(item => item.tipo === 'passeio').length;
+
+            if (list.length === 0) {
+                container.innerHTML = `
+                    <div class="p-8 text-center bg-white border border-dashed border-gray-200 rounded-2xl">
+                        <p class="text-gray-400 text-sm">Nenhuma reserva ou passeio para este dia.</p>
+                        <button onclick="openQuickAddModal()" class="text-blue-900 font-bold text-xs mt-2 underline">+ Adicionar Agora</button>
+                    </div>
+                `;
+                return;
+            }
+
+            list.forEach(item => {
+                // Layout de Status
+                let statusBadge = '';
+                let borderStatusColor = 'border-l-4';
+
+                switch(item.status) {
+                    case 'concluido':
+                        statusBadge = `<span class="bg-emerald-50 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-full"><i class="fas fa-check mr-1"></i> Concluído</span>`;
+                        borderStatusColor = 'border-emerald-500';
+                        break;
+                    case 'em-andamento':
+                        statusBadge = `<span class="bg-sky-50 text-sky-700 text-[10px] font-bold px-2 py-0.5 rounded-full animate-pulse"><i class="fas fa-spinner fa-spin mr-1"></i> Executando</span>`;
+                        borderStatusColor = 'border-sky-500';
+                        break;
+                    case 'atrasado':
+                        statusBadge = `<span class="bg-red-50 text-red-700 text-[10px] font-bold px-2 py-0.5 rounded-full"><i class="fas fa-exclamation-triangle mr-1"></i> Atraso de Voo</span>`;
+                        borderStatusColor = 'border-red-500';
+                        break;
+                    case 'confirmado':
+                        statusBadge = `<span class="bg-blue-50 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded-full"><i class="fas fa-calendar-check mr-1"></i> Confirmado</span>`;
+                        borderStatusColor = 'border-blue-900';
+                        break;
+                }
+
+                // Layout de Categoria (Ícone)
+                const categoryIcon = item.tipo === 'transfer' 
+                    ? `<span class="w-8 h-8 rounded-full bg-blue-50 text-blue-900 flex items-center justify-center text-sm font-bold shadow-sm" title="Transfer"><i class="fas fa-bus"></i></span>`
+                    : `<span class="w-8 h-8 rounded-full bg-orange-50 text-orange-600 flex items-center justify-center text-sm font-bold shadow-sm" title="Passeio"><i class="fas fa-camera"></i></span>`;
+
+                const cardHtml = `
+                    <div class="relative bg-white p-4 sm:p-5 rounded-2xl border-l-4 ${borderStatusColor} shadow-sm border border-gray-100 hover:shadow-md transition flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <!-- Bolinha de timeline na esquerda -->
+                        <div class="absolute -left-[23px] top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-gray-300 border-2 border-gray-50"></div>
+                        
+                        <div class="flex items-start gap-3">
+                            <!-- Hora destacada -->
+                            <div class="text-center min-w-[50px] bg-gray-50 px-2 py-1.5 rounded-lg border border-gray-100">
+                                <span class="block text-sm font-black text-gray-900">${item.hora}</span>
+                                <span class="text-[9px] font-bold text-gray-400 uppercase">${item.tipo}</span>
+                            </div>
+
+                            <div class="space-y-1">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <h4 class="font-extrabold text-gray-800 text-sm sm:text-base leading-none">${item.cliente}</h4>
+                                    <span class="text-xs bg-gray-100 px-1.5 py-0.5 rounded text-gray-500 font-semibold">${item.pax}</span>
+                                    ${statusBadge}
+                                </div>
+                                <p class="text-xs text-gray-600 font-medium flex items-center gap-1.5">
+                                    <i class="fas fa-map-marker-alt text-gray-400"></i> ${item.localizacao}
+                                </p>
+                                ${item.voo ? `
+                                <p class="text-[11px] font-bold flex items-center gap-1.5">
+                                    <span class="bg-gray-100 px-1.5 py-0.5 rounded text-gray-700 font-mono"><i class="fas fa-plane mr-1"></i>${item.voo}</span>
+                                    <span class="${item.status === 'atrasado' ? 'text-red-600' : 'text-gray-400 font-normal'}">${item.statusVoo}</span>
+                                </p>
+                                ` : ''}
+                            </div>
+                        </div>
+
+                        <!-- Lado Direito: Motorista & Ações -->
+                        <div class="flex items-center justify-between md:justify-end gap-3 pt-3 md:pt-0 border-t md:border-0 border-gray-100">
+                            <div class="flex items-center gap-2">
+                                <div class="w-8 h-8 rounded-full bg-blue-900 text-white flex items-center justify-center font-bold text-xs shadow-sm">
+                                    ${item.motorista.charAt(0)}
+                                </div>
+                                <div class="text-left">
+                                    <p class="text-[10px] text-gray-400 uppercase font-bold leading-none">Motorista</p>
+                                    <p class="text-xs font-bold text-gray-800 leading-tight">${item.motorista}</p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center gap-1.5">
+                                <!-- Chamar WhatsApp -->
+                                <a href="https://wa.me/${item.telefone}" target="_blank" class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center hover:bg-emerald-100 transition shadow-sm" title="Conversar">
+                                    <i class="fab fa-whatsapp"></i>
+                                </a>
+                                <!-- Mudar Status rápido -->
+                                <button onclick="toggleTripStatus(${item.id})" class="w-8 h-8 rounded-lg bg-gray-50 text-gray-500 hover:bg-blue-50 hover:text-blue-900 transition flex items-center justify-center border border-gray-100" title="Alterar Status">
+                                    <i class="fas fa-redo text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += cardHtml;
+            });
+        }
+
+        function selectDay(day, label) {
+            selectedDay = day;
+            
+            // Atualiza botões
+            document.querySelectorAll('.day-btn').forEach(btn => {
+                btn.className = "day-btn min-w-[65px] p-3 rounded-xl border border-gray-100 flex flex-col items-center justify-center transition hover:bg-blue-50/50";
+                // Reseta a cor dos textos dos botões não ativos
+                const daySpan = btn.querySelector('span:nth-child(2)');
+                if (daySpan) daySpan.className = "text-lg font-bold text-gray-800";
+            });
+
+            const activeBtn = document.getElementById(`day-${day}`);
+            if (activeBtn) {
+                activeBtn.className = "day-btn min-w-[65px] p-3 rounded-xl bg-blue-900 border border-blue-900 text-white flex flex-col items-center justify-center transition shadow-md shadow-blue-900/25";
+                const daySpan = activeBtn.querySelector('span:nth-child(2)');
+                if (daySpan) daySpan.className = "text-lg font-bold text-white";
+            }
+
+            renderAgenda();
+            showToast(`Visualizando agenda de dia ${day}`);
+        }
+
+        function filterCategory(category) {
+            selectedCategory = category;
+
+            // Altera botões de filtro
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.className = "filter-btn px-4 py-2 rounded-xl bg-white border border-gray-200 text-gray-600 text-xs font-bold transition hover:bg-gray-50";
+            });
+
+            const activeBtn = document.getElementById(`btn-filter-${category}`);
+            if (activeBtn) {
+                activeBtn.className = "filter-btn px-4 py-2 rounded-xl bg-gray-900 text-white text-xs font-bold transition shadow-sm";
+            }
+
+            renderAgenda();
+        }
+
+        // Altera ciclicamente o status de um serviço no mock (concluido -> atrasado -> confirmado -> em-andamento)
+        function toggleTripStatus(id) {
+            const index = databaseAgenda.findIndex(item => item.id === id);
+            if (index !== -1) {
+                const states = ['confirmado', 'em-andamento', 'concluido', 'atrasado'];
+                const currentStatus = databaseAgenda[index].status;
+                const nextIndex = (states.indexOf(currentStatus) + 1) % states.length;
+                databaseAgenda[index].status = states[nextIndex];
+                
+                renderAgenda();
+                showToast(`Status da reserva de "${databaseAgenda[index].cliente}" atualizado!`);
+            }
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMessage').innerText = message;
+            
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 2500);
+        }
+
+        // Controle do Modal de Adição rápida
+        function openQuickAddModal() {
+            const modal = document.getElementById('quickModal');
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modal.classList.add('opacity-100');
+        }
+
+        function closeQuickAddModal() {
+            const modal = document.getElementById('quickModal');
+            modal.classList.remove('opacity-100');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+        }
+
+        function saveQuickReserva(event) {
+            event.preventDefault();
+
+            const newEvent = {
+                id: Date.now(),
+                dia: selectedDay,
+                hora: document.getElementById('modalTime').value,
+                tipo: document.getElementById('modalType').value,
+                cliente: document.getElementById('modalClient').value,
+                pax: "2 pax", // Simulado
+                localizacao: document.getElementById('modalDesc').value,
+                motorista: document.getElementById('modalDriver').value,
+                status: "confirmado",
+                voo: document.getElementById('modalFlight').value,
+                statusVoo: document.getElementById('modalFlight').value ? "Planejado" : "",
+                telefone: document.getElementById('modalPhone').value
+            };
+
+            databaseAgenda.push(newEvent);
+            renderAgenda();
+            closeQuickAddModal();
+            showToast("Nova reserva agendada com sucesso!");
+        }
+
+        // Executa ao carregar
+        window.onload = function() {
+            renderAgenda();
+        };
+    </script>
+</body>
+</html>
