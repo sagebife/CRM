@@ -479,8 +479,17 @@
         </div>
 <!-- NOVA ABA CLIENTES -->
 <div id="view-clientes" class="view-section hidden space-y-6">
-    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-        <h2 class="text-xl font-bold text-blue-900 mb-6">Banco de Inteligência de Clientes</h2>
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 space-y-4">
+        <h2 class="text-xl font-bold text-blue-900">Banco de Inteligência de Clientes</h2>
+        
+        <!-- BARRA DE PESQUISA EM TEMPO REAL -->
+        <div class="relative">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                <i class="fas fa-search"></i>
+            </span>
+            <input type="text" id="searchClientInput" oninput="filtrarClientesTempoReal()" placeholder="Pesquisar cliente por nome..." class="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-900 focus:bg-white transition text-sm">
+        </div>
+
         <div id="clientesList" class="flex flex-col gap-3">
             <!-- Os clientes aparecerão aqui -->
         </div>
@@ -1930,6 +1939,53 @@ document.getElementById('servicoSelectReserva').addEventListener('change', funct
         campoCobrança.value = preco;
     }
 });
+// Função de busca em tempo real na aba de Clientes
+async function filtrarClientesTempoReal() {
+    const termo = document.getElementById('searchClientInput').value.trim();
+    const container = document.getElementById('clientesList');
+    if (!container) return;
+
+    // Faz a consulta no Supabase trazendo apenas os nomes parecidos com o que foi digitado (.ilike faz a busca insensível a maiúsculas/minúsculas)
+    let query = clienteSupabase.from('clientes').select('*').order('nome', { ascending: true });
+
+    if (termo) {
+        query = query.ilike('nome', `%${termo}%`);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+        console.error("Erro na busca de clientes:", error);
+        return;
+    }
+
+    container.innerHTML = ''; // Limpa a lista
+
+    if (data.length === 0) {
+        container.innerHTML = `<p class="text-xs text-gray-400 text-center py-4">Nenhum cliente encontrado.</p>`;
+        return;
+    }
+
+    // Renderiza os clientes filtrados
+    data.forEach(cliente => {
+        container.innerHTML += `
+            <div class="p-4 bg-white border border-gray-100 rounded-xl hover:border-blue-200 transition flex items-center justify-between">
+                <div>
+                    <h3 class="font-bold text-gray-900">${cliente.nome}</h3>
+                    <p class="text-sm text-gray-500">${cliente.whatsapp || 'Sem WhatsApp'}</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="abrirModalBio('${cliente.nome}')" class="px-3 py-1 bg-blue-50 text-blue-700 rounded-lg text-xs font-bold">
+                        Editar Dossiê
+                    </button>
+                    <button onclick="deletarCliente('${cliente.id}')" class="px-3 py-1 bg-red-50 text-red-700 rounded-lg text-xs font-bold hover:bg-red-100 transition">
+                        Deletar
+                    </button>
+                </div>
+            </div>
+        `;
+    });
+}
 async function renderClientes() {
     const container = document.getElementById('clientesList');
     if (!container) {
