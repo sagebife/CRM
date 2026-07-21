@@ -2078,6 +2078,7 @@ async function renderClientes() {
     }
 }
 // Função unificada: Cadastra/Verifica o cliente e salva a reserva de uma só vez
+// Função unificada corrigida: Limpa campos, deixa biografia vazia e atualiza a tela corretamente
 async function saveQuickReserva(event) {
     event.preventDefault();
 
@@ -2111,14 +2112,14 @@ async function saveQuickReserva(event) {
             if (existingClient) {
                 clientId = existingClient.id;
             } else {
-                // 2. Se não existir, cadastra automaticamente no Banco de Inteligência de Clientes
+                // 2. Se não existir, cadastra com a biografia VAZIA (conforme solicitado)
                 const { data: newClientData, error: clientErr } = await supabaseClient
                     .from('clientes')
                     .insert([{ 
                         nome: clientName, 
                         whatsapp: clientPhone, 
                         origem: 'Brasil', 
-                        biografia: 'Cadastrado automaticamente via Nova Reserva.' 
+                        biografia: '' 
                     }])
                     .select();
                 
@@ -2126,7 +2127,7 @@ async function saveQuickReserva(event) {
                 clientId = newClientData[0].id;
             }
 
-            // 3. Insere a Reserva vinculada ao ID do cliente (seja ele novo ou antigo)
+            // 3. Insere a Reserva vinculada ao ID do cliente
             const { error: resErr } = await supabaseClient.from('reservas').insert([{
                 cliente_id: clientId,
                 motorista_id: driverId,
@@ -2143,8 +2144,23 @@ async function saveQuickReserva(event) {
             if (resErr) throw resErr;
             
             showToast("Cliente atualizado e reserva agendada com sucesso!");
+            
+            // Limpa os campos do formulário do modal
+            document.getElementById('modalClient').value = '';
+            document.getElementById('modalPhone').value = '';
+            document.getElementById('modalDate').value = '';
+            document.getElementById('modalTime').value = '';
+            document.getElementById('modalDesc').value = '';
+            document.getElementById('modalFlight').value = '';
+            document.getElementById('modalValueTotal').value = '';
+            document.getElementById('modalValueDriver').value = '';
+
             closeQuickAddModal();
-            loadRealData();
+
+            // Recarrega as funções de tela do seu sistema para exibir o agendamento
+            if (typeof carregarAgenda === 'function') carregarAgenda();
+            if (typeof renderAgenda === 'function') renderAgenda();
+            if (typeof renderDashboard === 'function') renderDashboard();
             if (typeof renderClientes === 'function') renderClientes();
 
         } catch (err) {
@@ -2167,6 +2183,15 @@ async function saveQuickReserva(event) {
             status: "confirmado"
         };
         databaseAgenda.push(newEvent);
+        
+        // Limpa os campos do formulário local
+        document.getElementById('modalClient').value = '';
+        document.getElementById('modalPhone').value = '';
+        document.getElementById('modalDesc').value = '';
+        document.getElementById('modalFlight').value = '';
+        document.getElementById('modalValueTotal').value = '';
+        document.getElementById('modalValueDriver').value = '';
+
         renderAgenda();
         renderDashboard();
         showToast("Reserva e cliente simulados com sucesso!");
