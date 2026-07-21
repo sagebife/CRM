@@ -2077,36 +2077,100 @@ async function renderClientes() {
         fecharModalBio();
     }
 }
-async function salvarNovoCliente() {
-    // 1. Captura os valores
-    const nome = document.getElementById('inputNome').value;
-    const whatsapp = document.getElementById('inputWhatsapp').value;
-    const origem = document.getElementById('inputOrigem').value; // Novo campo
-    const biografia = document.getElementById('inputBio').value;
+// Função unificada: Cadastra/Verifica o cliente e salva a reserva de uma só vez
+async function saveQuickReserva(event) {
+    event.preventDefault();
 
-    if (!nome || !whatsapp) return alert("Nome e WhatsApp são obrigatórios!");
+    const clientName = document.getElementById('modalClient').value.trim();
+    const clientPhone = document.getElementById('modalPhone').value.trim();
+    const date = document.getElementById('modalDate').value;
+    const time = document.getElementById('modalTime').value;
+    const cat = document.getElementById('catSelectReserva').value;
+    const servico = document.getElementById('servicoSelectReserva').value;
+    const desc = document.getElementById('modalDesc').value;
+    const driverId = document.getElementById('modalDriverSelect').value;
+    const flight = document.getElementById('modalFlight').value;
+    const valCliente = parseFloat(document.getElementById('modalValueTotal').value) || 0;
+    const valMotorista = parseFloat(document.getElementById('modalValueDriver').value) || 0;
 
-    // 2. Envia para o Supabase
-    const { data, error } = await clienteSupabase
-        .from('clientes')
-        .insert([{ 
-            nome: nome, 
-            whatsapp: whatsapp,
-            origem: origem, // Adicionado aqui
-            biografia: biografia 
-        }]);
+    if (!clientName || !clientPhone) {
+        showToast("Preencha o nome e o WhatsApp do cliente.");
+        return;
+    }
 
-    if (error) {
-        console.error("Erro ao salvar:", error);
-        alert("Erro ao salvar: " + error.message);
+    if (isConnectedToSupabase && supabaseClient) {
+        try {
+            // 1. Verifica se o cliente já existe pelo WhatsApp
+            let clientId = null;
+            const { data: existingClient, error: searchError } = await supabaseClient
+                .from('clientes')
+                .select('id')
+                .eq('whatsapp', clientPhone)
+                .maybeSingle();
+
+            if (existingClient) {
+                clientId = existingClient.id;
+            } else {
+                // 2. Se não existir, cadastra automaticamente no Banco de Inteligência de Clientes
+                const { data: newClientData, error: clientErr } = await supabaseClient
+                    .from('clientes')
+                    .insert([{ 
+                        nome: clientName, 
+                        whatsapp: clientPhone, 
+                        origem: 'Brasil', 
+                        biografia: 'Cadastrado automaticamente via Nova Reserva.' 
+                    }])
+                    .select();
+                
+                if (clientErr) throw clientErr;
+                clientId = newClientData[0].id;
+            }
+
+            // 3. Insere a Reserva vinculada ao ID do cliente (seja ele novo ou antigo)
+            const { error: resErr } = await supabaseClient.from('reservas').insert([{
+                cliente_id: clientId,
+                motorista_id: driverId,
+                dia: date.toString(),
+                hora: time,
+                tipo: cat,
+                localizacao: (servico ? servico + " - " : "") + desc,
+                voo: flight,
+                valor_total: valCliente,
+                valor_repasse_motorista: valMotorista,
+                status: "confirmado"
+            }]);
+
+            if (resErr) throw resErr;
+            
+            showToast("Cliente atualizado e reserva agendada com sucesso!");
+            closeQuickAddModal();
+            loadRealData();
+            if (typeof renderClientes === 'function') renderClientes();
+
+        } catch (err) {
+            console.error(err);
+            showToast("Erro ao processar reserva integrada.");
+        }
     } else {
-        document.getElementById('modalNovoCliente').classList.add('hidden');
-        // Limpa os campos após salvar
-        document.getElementById('inputNome').value = '';
-        document.getElementById('inputWhatsapp').value = '';
-        document.getElementById('inputOrigem').value = 'Brasil';
-        document.getElementById('inputBio').value = '';
-        renderClientes();
+        // Modo Simulação Local
+        const newEvent = {
+            id: String(Date.now()),
+            dia: date ? parseInt(date.split('-')[2]) : 14,
+            hora: time,
+            tipo: cat || 'transfer',
+            cliente: clientName,
+            localizacao: (servico ? servico + " - " : "") + desc,
+            motorista: driverId,
+            valorCliente: valCliente,
+            valorMotorista: valMotorista,
+            telefone: clientPhone,
+            status: "confirmado"
+        };
+        databaseAgenda.push(newEvent);
+        renderAgenda();
+        renderDashboard();
+        showToast("Reserva e cliente simulados com sucesso!");
+        closeQuickAddModal();
     }
 }
 async function deletarCliente(id) {
@@ -2136,54 +2200,6 @@ async function deletarCliente(id) {
         <div class="flex gap-3 mt-6">
             <button onclick="fecharModalBio()" class="flex-1 py-2 bg-gray-100 rounded-xl font-bold text-sm">Cancelar</button>
             <button onclick="salvarBio()" class="flex-1 py-2 bg-blue-900 text-white rounded-xl font-bold text-sm">Salvar Inteligência</button>
-        </div>
-    </div>
-</div>
-<!-- Botão Flutuante -->
-    <button 
-        onclick="document.getElementById('modalNovoCliente').classList.remove('hidden')" 
-        class="fixed bottom-8 right-8 bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-8 rounded-full shadow-2xl transition-all duration-300 z-50 flex items-center gap-2">
-        <span class="text-xl">+</span> Novo Cliente
-    </button>
-
-    <!-- Modal de Adicionar Novo Cliente -->
-    <div id="modalNovoCliente" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50">
-    <div class="bg-white p-8 rounded-2xl w-full max-w-lg shadow-2xl">
-        <h2 class="text-xl font-bold text-gray-900 mb-6">Cadastrar Novo Cliente</h2>
-        
-        <div class="space-y-4">
-            <!-- Nome -->
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Nome Completo</label>
-                <input type="text" id="inputNome" placeholder="Ex: Carlos Gomez" class="w-full p-3 mt-1 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
-            </div>
-
-            <!-- WhatsApp e Origem (Grid) -->
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">WhatsApp</label>
-                    <input type="text" id="inputWhatsapp" placeholder="54911..." class="w-full p-3 mt-1 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Origem</label>
-                    <select id="inputOrigem" class="w-full p-3 mt-1 border border-gray-300 rounded-xl">
-                        <option>Brasil</option>
-                        <option>Argentina</option>
-                        <option>Outro</option>
-                    </select>
-                </div>
-            </div>
-
-            <!-- Biografia / Observações -->
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Preferências e Observações</label>
-                <textarea id="inputBio" rows="3" placeholder="Ex: Gosta de shows de tango, prefere hotéis em Palermo..." class="w-full p-3 mt-1 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"></textarea>
-            </div>
-        </div>
-
-        <div class="flex justify-end gap-3 mt-8">
-            <button onclick="document.getElementById('modalNovoCliente').classList.add('hidden')" class="px-6 py-2 text-gray-600 font-bold">Cancelar</button>
-            <button onclick="salvarNovoCliente()" class="px-6 py-2 bg-blue-900 text-white rounded-xl font-bold hover:bg-blue-800 transition">Salvar Cliente</button>
         </div>
     </div>
 </div>
