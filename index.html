@@ -199,8 +199,9 @@
                     <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 space-y-4">
                         <div class="flex items-center justify-between border-b border-gray-100 pb-3">
                             <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
-                                <i class="fas fa-route text-blue-900"></i> Próximas Atividades de Hoje (14/07)
-                            </h3>
+<h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
+    <i class="fas fa-route text-blue-900"></i> <span id="tituloAtividadesHoje">Próximas Atividades de Hoje</span>
+</h3>                            </h3>
                             <button onclick="switchTab('agenda')" class="text-xs text-blue-900 font-bold hover:underline">Ver agenda completa</button>
                         </div>
 
@@ -1630,6 +1631,12 @@
 
         function openQuickAddModal() {
             const modal = document.getElementById('quickModal');
+            // Pega a data de hoje automaticamente (ex: 2026-07-21)
+const hoje = new Date().toISOString().split('T')[0];
+const inputData = document.getElementById('modalDate');
+if (inputData) {
+    inputData.value = hoje;
+}
             if (modal) {
                 modal.classList.remove('opacity-0', 'pointer-events-none');
                 modal.classList.add('opacity-100');
@@ -2212,6 +2219,65 @@ async function deletarCliente(id) {
 }
     // Inicialização
     carregarMenuCategorias();
+    // Busca o WhatsApp automaticamente quando você termina de digitar o nome
+document.getElementById('modalClient').addEventListener('blur', async function() {
+    const nomeDigitado = this.value.trim();
+    if (!nomeDigitado) return;
+
+    if (isConnectedToSupabase && supabaseClient) {
+        const { data, error } = await supabaseClient
+            .from('clientes')
+            .select('whatsapp')
+            .ilike('nome', `%${nomeDigitado}%`)
+            .maybeSingle();
+
+        if (data && data.whatsapp) {
+            document.getElementById('modalPhone').value = data.whatsapp;
+        }
+    }
+});
+// Atualiza o título do Dashboard com a data de hoje dinamicamente
+const dataFormatada = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+const elementoTituloHoje = document.getElementById('tituloAtividadesHoje');
+if (elementoTituloHoje) {
+    elementoTituloHoje.innerText = `Próximas Atividades de Hoje (${dataFormatada})`;
+}
+// Função para carregar todas as reservas do mês inteiro na Agenda
+async function carregarMesInteiro() {
+    if (!isConnectedToSupabase || !supabaseClient) return;
+
+    // Pega o ano e o mês atuais do sistema
+    const agora = new Date();
+    const ano = agora.getFullYear();
+    const mes = agora.getMonth() + 1; // Meses de 1 a 12
+
+    // Define o primeiro e o último dia do mês atual (ex: 2026-07-01 e 2026-07-31)
+    const primeiroDia = `${ano}-${String(mes).padStart(2, '0')}-01`;
+    const ultimoDia = `${ano}-${String(mes).padStart(2, '0')}-31`;
+
+    try {
+        const { data, error } = await supabaseClient
+            .from('reservas')
+            .select('*, clientes(nome, whatsapp)')
+            .gte('dia', primeiroDia)
+            .lte('dia', ultimoDia);
+
+        if (error) throw error;
+
+        // Se encontrou os dados, chama a função que desenha a agenda na tela
+        if (typeof renderizarAgendaMensal === 'function') {
+            renderizarAgendaMensal(data);
+        } else {
+            console.log("Dados do mês carregados:", data);
+            showToast("Agenda do mês carregada com sucesso!");
+        }
+    } catch (err) {
+        console.error("Erro ao carregar mês:", err);
+    }
+}
+<button onclick="carregarMesInteiro()" class="px-4 py-2 bg-blue-900 text-white rounded-xl font-bold text-sm hover:bg-blue-800 transition">
+    Ver Mês Inteiro
+</button>
 </script>
 
 <!-- O Modal é HTML, fica FORA do script, logo antes de fechar o Body -->
