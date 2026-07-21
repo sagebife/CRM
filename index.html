@@ -1635,8 +1635,7 @@
 const hoje = new Date().toISOString().split('T')[0];
 const inputData = document.getElementById('modalDate');
 if (inputData) {
-    inputData.value = hoje;
-}
+    inputData.value = '';
             if (modal) {
                 modal.classList.remove('opacity-0', 'pointer-events-none');
                 modal.classList.add('opacity-100');
@@ -1651,7 +1650,30 @@ if (inputData) {
                 modal.classList.add('opacity-0', 'pointer-events-none');
             }
         }
+function gerarDiasAgenda() {
+    const containerDias = document.getElementById('containerDiasAgenda');
+    if (!containerDias) return;
+    containerDias.innerHTML = '';
 
+    const hoje = new Date();
+    
+    for (let i = -3; i <= 3; i++) {
+        const d = new Date();
+        d.setDate(hoje.getDate() + i);
+        
+        const diaStr = d.toISOString().split('T')[0];
+        const diaNumero = d.getDate();
+        const diaSemana = d.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '');
+        const isHoje = i === 0;
+
+        containerDias.innerHTML += `
+            <div onclick="carregarReservasDia('${diaStr}')" class="cursor-pointer px-4 py-3 rounded-2xl text-center transition ${isHoje ? 'bg-blue-950 text-white font-bold shadow-md' : 'bg-white hover:bg-gray-100 text-gray-700'}">
+                <span class="block text-xs uppercase">${diaSemana}</span>
+                <span class="text-lg">${diaNumero}</span>
+            </div>
+        `;
+    }
+}
         function openConfirmModal(title, text) {
             document.getElementById('confirmTitle').innerText = title;
             document.getElementById('confirmText').innerText = text;
@@ -2178,7 +2200,7 @@ async function saveQuickReserva(event) {
         // Modo Simulação Local
         const newEvent = {
             id: String(Date.now()),
-            dia: date ? parseInt(date.split('-')[2]) : 14,
+dia: date ? parseInt(date.split('-')[2]) : new Date().getDate(),
             hora: time,
             tipo: cat || 'transfer',
             cliente: clientName,
