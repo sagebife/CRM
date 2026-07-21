@@ -1632,10 +1632,11 @@
         function openQuickAddModal() {
             const modal = document.getElementById('quickModal');
             // Pega a data de hoje automaticamente (ex: 2026-07-21)
-const hoje = new Date().toISOString().split('T')[0];
-const inputData = document.getElementById('modalDate');
-if (inputData) {
-    inputData.value = '';
+            const hoje = new Date().toISOString().split('T')[0];
+            const inputData = document.getElementById('modalDate');
+            if (inputData) {
+                inputData.value = '';
+            }
             if (modal) {
                 modal.classList.remove('opacity-0', 'pointer-events-none');
                 modal.classList.add('opacity-100');
@@ -2300,19 +2301,6 @@ async function carregarMesInteiro() {
 
 </script>
 
-<!-- O Modal é HTML, fica FORA do script, logo antes de fechar o Body -->
-<div id="modalBioCliente" class="fixed inset-0 bg-gray-950/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white w-full max-w-lg rounded-2xl p-6 shadow-2xl">
-        <h3 class="text-lg font-bold text-blue-900 mb-4" id="modalNomeCliente">Dossiê do Cliente</h3>
-        <div class="space-y-4">
-            <textarea id="modalBioInput" rows="4" placeholder="Biografia, preferências e histórico..." class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-sm"></textarea>
-            <input type="text" id="modalTagsInput" placeholder="Tags (Ex: #vinho #familia)" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-sm">
-        </div>
-        <div class="flex gap-3 mt-6">
-            <button onclick="fecharModalBio()" class="flex-1 py-2 bg-gray-100 rounded-xl font-bold text-sm">Cancelar</button>
-            <button onclick="salvarBio()" class="flex-1 py-2 bg-blue-900 text-white rounded-xl font-bold text-sm">Salvar Inteligência</button>
-        </div>
-    </div>
 </div>
 </body>
 </html>
