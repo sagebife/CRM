@@ -864,17 +864,21 @@
             if (mNavMoto) mNavMoto.className = tabId === 'motoristas' ? "text-blue-900 py-1 flex flex-col items-center" : "text-gray-400 py-1 flex flex-col items-center";
             if (mNavFin) mNavFin.className = tabId === 'financeiro' ? "text-blue-900 py-1 flex flex-col items-center" : "text-gray-400 py-1 flex flex-col items-center";
 
-            if(tabId === 'dashboard') {
-                renderDashboard();
-            } else if(tabId === 'agenda') {
-                renderAgenda();
-            } else if(tabId === 'motoristas') {
-                renderDrivers();
-            } else if(tabId === 'financeiro') {
-                renderFinanceiro();
-            } else if(tabId === 'clientes') {
-    renderClientes();
-}
+            if (tabId === 'dashboard') {
+            renderDashboard();
+        } else if (tabId === 'agenda') {
+            const hoje = new Date();
+            const ano = hoje.getFullYear();
+            const mes = String(hoje.getMonth() + 1).padStart(2, '0');
+            const dia = String(hoje.getDate()).padStart(2, '0');
+            selectDay(`${ano}-${mes}-${dia}`);
+        } else if (tabId === 'motoristas') {
+            renderDrivers();
+        } else if (tabId === 'financeiro') {
+            renderFinanceiro();
+        } else if (tabId === 'clientes') {
+            renderClientes();
+        }
         }
 
         // STREAMING_CHUNK: Renderizando os cards dinâmicos do Dashboard principal -->
