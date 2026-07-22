@@ -1648,18 +1648,18 @@ function gerarDiasAgenda() {
     containerDias.innerHTML = '';
 
     const hoje = new Date();
-    
+
     for (let i = -3; i <= 3; i++) {
         const d = new Date();
         d.setDate(hoje.getDate() + i);
-        
+
         const diaStr = d.toISOString().split('T')[0];
         const diaNumero = d.getDate();
         const diaSemana = d.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '');
-        const isHoje = i === 0;
+        const isSelected = diaStr === window.selectedDay;
 
         containerDias.innerHTML += `
-            <div onclick="carregarReservasDia('${diaStr}')" class="cursor-pointer px-4 py-3 rounded-2xl text-center transition ${isHoje ? 'bg-blue-950 text-white font-bold shadow-md' : 'bg-white hover:bg-gray-100 text-gray-700'}">
+            <div onclick="carregarReservasDia('${diaStr}')" class="cursor-pointer px-4 py-3 rounded-2xl text-center transition flex flex-col items-center justify-center ${isSelected ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-gray-700 border hover:bg-gray-50'}">
                 <span class="block text-xs uppercase">${diaSemana}</span>
                 <span class="text-lg">${diaNumero}</span>
             </div>
@@ -2290,31 +2290,7 @@ async function carregarMesInteiro() {
     }
 }
 // Gera os dias do carrossel dinamicamente
-    function gerarDiasAgenda() {
-        const container = document.getElementById('containerDiasAgenda');
-        if (!container) return;
-        container.innerHTML = '';
-
-        const hoje = new Date();
-
-        for (let i = -3; i <= 3; i++) {
-            const d = new Date();
-            d.setDate(hoje.getDate() + i);
-
-            const diaStr = d.toISOString().split('T')[0];
-            const diaNumero = d.getDate();
-            const diaSemana = d.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '');
-            
-            const isSelected = diaStr === window.selectedDay;
-
-            container.innerHTML += `
-                <button onclick="carregarReservasDia('${diaStr}')" class="day-btn min-w-[65px] p-3 rounded-2xl border transition flex flex-col items-center justify-center ${isSelected ? 'bg-blue-600 text-white border-blue-600 shadow-md' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'}">
-                    <span class="text-[10px] uppercase font-semibold">${diaSemana}</span>
-                    <span class="text-lg font-bold">${diaNumero}</span>
-                </button>
-            `;
-        }
-    }
+   
 </script>
 
 </div>
