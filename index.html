@@ -722,27 +722,25 @@
                     supabaseClient = supabase.createClient(savedUrl, savedKey);
                     isConnectedToSupabase = true;
                     
-                    if (statusBtn) {
-                        statusBtn.className = "flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold transition border border-emerald-500 bg-emerald-50 text-emerald-700 shadow-sm";
-                        statusText.innerText = "Supabase Conectado";
-                        dbIcon.className = "fas fa-cloud text-emerald-500 animate-pulse";
-                    }
-                    loadRealData();
-if (typeof selectDay === 'function') {
+                   if (statusBtn) {
+            statusBtn.className = "flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold transition border border-emerald-500 bg-emerald-50 text-emerald-700 shadow-sm";
+            statusText.innerText = "Supabase Conectado";
+            dbIcon.className = "fas fa-cloud text-emerald-500 animate-pulse";
+        }
+        loadRealData();
+
+        if (typeof selectDay === 'function') {
             const hojeStr = new Date().toISOString().split('T')[0];
             selectDay(hojeStr);
         }
     } catch (e) {
-                    
-                } catch (e) {
-                    console.error("Falha ao inicializar o cliente Supabase", e);
-                    switchToSimulationMode();
-                }
-            } else {
-                switchToSimulationMode();
-            }
+        console.error("Falha ao inicializar o cliente Supabase", e);
+        switchToSimulationMode();
+    }
+} else {
+    switchToSimulationMode();
+}
         }
-
         function switchToSimulationMode() {
             isConnectedToSupabase = false;
             databaseAgenda = [...mockAgenda];
