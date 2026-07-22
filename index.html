@@ -246,7 +246,7 @@
             <!-- Linha do Tempo -->
             <div class="space-y-4">
                 <div class="flex items-center justify-between">
-                    <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider" id="selected-day-label">Agenda: Terça-feira, 14 de Julho</h3>
+                    <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider" id="tituloDiaSelecionado">Agenda: Terça-feira, 14 de Julho</h3>
                     <span class="text-xs text-emerald-600 font-bold bg-emerald-50 px-2 py-1 rounded-full flex items-center gap-1">
                         <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span> Atualizado agora
                     </span>
@@ -1734,9 +1734,14 @@ function carregarReservasDia(dataStr) {
         // STREAMING_CHUNK: Inicializador asincrônico definitivo de toda a aplicação -->
         // Inicializador seguro contra travamentos no browser
         function initCRM() {
-            initSupabase();
-            carregarCategorias();
-            carregarDadosNoMenuReserva();
+    initSupabase();
+    gerarDiasAgenda();
+    carregarReservasDia(new Date().toISOString().split('T')[0]);
+    
+    carregarCategorias();
+    carregarDadosNoMenuReserva();
+    // ... restante do código
+}
 
             const tempClientInput = document.getElementById('tempClient');
             if(tempClientInput) {
