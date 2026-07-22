@@ -1478,8 +1478,7 @@ renderDashboard();
         }
 
         // Utilitários de Data e Visualizações Gerais
-        function selectDay(day) {
-    // Se o 'day' passado for apenas o número (ex: 20 ou 21), converte para o formato YYYY-MM-DD do mês/ano atual
+       function selectDay(day) {
     if (String(day).length <= 2) {
         const hojeObj = new Date();
         const ano = hojeObj.getFullYear();
@@ -1487,8 +1486,18 @@ renderDashboard();
         const diaFormatado = String(day).padStart(2, '0');
         selectedDay = `${ano}-${mes}-${diaFormatado}`;
     } else {
-        selectedDay = day;
+        const [ano, mes, d] = String(day).split('-');
+        if (ano && mes && d) {
+            const dataLocal = new Date(ano, mes - 1, d);
+            const aLoc = dataLocal.getFullYear();
+            const mLoc = String(dataLocal.getMonth() + 1).padStart(2, '0');
+            const dLoc = String(dataLocal.getDate()).padStart(2, '0');
+            selectedDay = `${aLoc}-${mLoc}-${dLoc}`;
+        } else {
+            selectedDay = day;
+        }
     }
+}
 
     document.querySelectorAll('.day-btn').forEach(btn => {
         btn.className = "day-btn min-w-[65px] p-3 rounded-xl border border-gray-100 flex flex-col items-center justify-center transition hover:border-gray-300";
