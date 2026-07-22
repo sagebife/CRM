@@ -705,14 +705,6 @@
         let selectedCategory = 'todos';
         let confirmPromiseResolver = null;
 
-        const weekNames = {
-            12: "Domingo, 12 de Julho",
-            13: "Segunda-feira, 13 de Julho",
-            14: "Terça-feira, 14 de Julho (Hoje)",
-            15: "Quarta-feira, 15 de Julho",
-            16: "Quinta-feira, 16 de Julho",
-            17: "Sexta-feira, 17 de Julho"
-        };
 
         // STREAMING_CHUNK: Implementando a conexão e tratamento de chaves do Supabase -->
         // Tenta inicializar o Supabase usando credenciais salvas no navegador
@@ -949,9 +941,17 @@
 
             list.sort((a, b) => a.hora.localeCompare(b.hora));
 
-            const labelEl = document.getElementById('selected-day-label');
-            if (labelEl) labelEl.innerText = weekNames[selectedDay] || `Dia ${selectedDay}`;
-
+           const labelEl = document.getElementById('selected-day-label');
+if (labelEl) {
+    const [ano, mes, dia] = String(selectedDay).split('-');
+    if (ano && mes && dia) {
+        const dataObj = new Date(ano, mes - 1, dia);
+        const nomeFormatado = dataObj.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
+        labelEl.innerText = `Agenda: ${nomeFormatado.charAt(0).toUpperCase() + nomeFormatado.slice(1)}`;
+    } else {
+        labelEl.innerText = `Agenda: ${selectedDay}`;
+    }
+}
             const totalDia = databaseAgenda.filter(item => {
             if (!item.dia) return false;
             return String(item.dia) === String(window.selectedDay);
