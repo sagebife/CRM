@@ -663,10 +663,10 @@
     </div>
 
     <!-- Toast Notificação Geral -->
-    <div id="toast" class="fixed bottom-24 lg:bottom-6 right-6 bg-gray-900 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 transform translate-y-20 opacity-0 transition duration-300 ease-out z-50">
-        <i class="fas fa-check-circle text-emerald-400" id="toast-icon"></i>
-        <span id="toastMessage">Ação realizada!</span>
-    </div>
+   <div id="toast" class="fixed bottom-24 lg:bottom-6 right-6 bg-gray-900 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none z-50">
+    <i class="fas fa-check-circle text-emerald-400" id="toast-icon"></i>
+    <span id="toastMessage">Ação realizada!</span>
+</div>
 
     <!-- Navegação Mobile Inferior -->
     <nav class="md:hidden fixed bottom-0 w-full bg-white border-t border-gray-200 flex justify-around p-3 shadow-lg z-30">
@@ -1447,7 +1447,7 @@ renderDashboard();
         }
 
         // Utilitários de Data e Visualizações Gerais
-     function selectDay(day) {
+    function selectDay(day) {
     if (String(day).length <= 2) {
         const hojeObj = new Date();
         const ano = hojeObj.getFullYear();
@@ -1467,18 +1467,19 @@ renderDashboard();
         }
     }
 
+    // Atualiza visualmente todos os botões de dias removendo o estilo ativo e aplicando no selecionado
     document.querySelectorAll('.day-btn').forEach(btn => {
-        btn.className = "day-btn min-w-[65px] p-3 rounded-xl border border-gray-100 flex flex-col items-center justify-center transition-all bg-white hover:border-gray-200 cursor-pointer shadow-sm";
+        // Remove o estilo azul de todos
+        btn.className = "day-btn min-w-[65px] p-3 rounded-xl border border-gray-100 flex flex-col items-center justify-center transition-all bg-white text-gray-700 hover:bg-gray-50";
         const daySpan = btn.querySelector('span:nth-child(2)');
         if (daySpan) daySpan.className = "text-lg font-bold text-gray-800";
+        
+        // Se este botão corresponde ao dia selecionado, pinta de azul
+        if (btn.getAttribute('onclick') && btn.getAttribute('onclick').includes(day)) {
+            btn.className = "day-btn min-w-[65px] p-3 rounded-xl bg-blue-900 border border-blue-900 text-white flex flex-col items-center justify-center shadow-md";
+            if (daySpan) daySpan.className = "text-lg font-bold text-white";
+        }
     });
-
-    const activeBtn = document.getElementById(`day-${selectedDay}`);
-    if (activeBtn) {
-        activeBtn.className = "day-btn min-w-[65px] p-3 rounded-xl bg-blue-900 border border-blue-900 text-white flex flex-col items-center justify-center transition-all shadow-md cursor-pointer";
-        const daySpan = activeBtn.querySelector('span:nth-child(2)');
-        if (daySpan) daySpan.className = "text-lg font-bold text-white";
-    }
 
     if (typeof renderAgenda === 'function') {
         renderAgenda();
