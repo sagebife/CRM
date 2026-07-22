@@ -1665,11 +1665,11 @@ function gerarDiasAgenda() {
         const isSelected = diaStr === window.selectedDay;
 
         containerDias.innerHTML += `
-            <div onclick="carregarReservasDia('${diaStr}')" class="cursor-pointer px-4 py-3 rounded-2xl text-center transition flex flex-col items-center justify-center ${isSelected ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-gray-700 border hover:bg-gray-50'}">
-                <span class="block text-xs uppercase">${diaSemana}</span>
-                <span class="text-lg">${diaNumero}</span>
-            </div>
-        `;
+        <div id="day-${diaStr}" onclick="selectDay('${diaStr}')" class="cursor-pointer px-4 py-3 rounded-2xl text-center transition ${isSelected ? 'bg-blue-900 text-white shadow-md' : 'bg-white hover:bg-gray-100 text-gray-700 border border-gray-100'}">
+            <span class="block text-xs uppercase">${diaSemana}</span>
+            <span class="text-lg font-bold">${diaNumero}</span>
+        </div>
+    `;
     }
 }
 function carregarReservasDia(dataStr) {
