@@ -2290,21 +2290,31 @@ async function carregarMesInteiro() {
     }
 }
 // Gera os dias do carrossel dinamicamente
-        function gerarDiasAgenda() {
-            const container = document.getElementById('containerDiasAgenda');
-            if (!container) return;
-            container.innerHTML = '';
+    function gerarDiasAgenda() {
+        const container = document.getElementById('containerDiasAgenda');
+        if (!container) return;
+        container.innerHTML = '';
 
-            for (let i = 12; i <= 18; i++) {
-                const isSelected = i === Number(selectedDay);
-                container.innerHTML += `
-                    <button onclick="selectDay(${i})" class="day-btn min-w-[65px] p-3 rounded-2xl border transition flex flex-col items-center justify-center ${isSelected ? 'bg-blue-900 border-blue-900 text-white shadow-md' : 'border-gray-100 hover:bg-blue-50/50 text-gray-800'}" id="day-${i}">
-                        <span class="text-[10px] ${isSelected ? 'text-blue-200' : 'text-gray-400'} font-medium">Dia</span>
-                        <span class="text-lg font-bold">${i}</span>
-                    </button>
-                `;
-            }
+        const hoje = new Date();
+
+        for (let i = -3; i <= 3; i++) {
+            const d = new Date();
+            d.setDate(hoje.getDate() + i);
+
+            const diaStr = d.toISOString().split('T')[0];
+            const diaNumero = d.getDate();
+            const diaSemana = d.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '');
+            
+            const isSelected = diaStr === window.selectedDay;
+
+            container.innerHTML += `
+                <button onclick="carregarReservasDia('${diaStr}')" class="day-btn min-w-[65px] p-3 rounded-2xl border transition flex flex-col items-center justify-center ${isSelected ? 'bg-blue-600 text-white border-blue-600 shadow-md' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'}">
+                    <span class="text-[10px] uppercase font-semibold">${diaSemana}</span>
+                    <span class="text-lg font-bold">${diaNumero}</span>
+                </button>
+            `;
         }
+    }
 </script>
 
 </div>
