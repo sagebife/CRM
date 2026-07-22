@@ -1659,7 +1659,10 @@ function gerarDiasAgenda() {
         const d = new Date();
         d.setDate(hoje.getDate() + i);
 
-        const diaStr = d.toISOString().split('T')[0];
+       const anoLoc = d.getFullYear();
+const mesLoc = String(d.getMonth() + 1).padStart(2, '0');
+const diaLoc = String(d.getDate()).padStart(2, '0');
+const diaStr = `${anoLoc}-${mesLoc}-${diaLoc}`;
         const diaNumero = d.getDate();
         const diaSemana = d.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '');
         const isSelected = diaStr === window.selectedDay;
