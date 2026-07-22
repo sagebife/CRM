@@ -1474,22 +1474,26 @@ renderDashboard();
         }
     }
 
-    // Atualiza visualmente todos os botões de dias removendo o estilo ativo e aplicando no selecionado
+   // Atualiza visualmente todos os botões de dias removendo o estilo ativo e aplicando no selecionado
     document.querySelectorAll('.day-btn').forEach(btn => {
-        // Remove o estilo azul de todos
-        btn.className = "day-btn min-w-[65px] p-3 rounded-xl border border-gray-100 flex flex-col items-center justify-center transition-all bg-white text-gray-700 hover:bg-gray-50";
-        const daySpan = btn.querySelector('span:nth-child(2)');
-        if (daySpan) daySpan.className = "text-lg font-bold text-gray-800";
+        const btnDate = btn.getAttribute('data-date');
         
-        // Se este botão corresponde ao dia selecionado, pinta de azul
-        if (btn.getAttribute('onclick') && btn.getAttribute('onclick').includes(day)) {
-            btn.className = "day-btn min-w-[65px] p-3 rounded-xl bg-blue-900 border border-blue-900 text-white flex flex-col items-center justify-center shadow-md";
+        if (btnDate === selectedDay) {
+            btn.className = "day-btn min-w-[65px] p-3 rounded-xl border border-blue-600 bg-blue-600 text-white flex flex-col items-center justify-center shadow-md transition";
+            const daySpan = btn.querySelector('span:nth-child(2)');
             if (daySpan) daySpan.className = "text-lg font-bold text-white";
+        } else {
+            btn.className = "day-btn min-w-[65px] p-3 rounded-xl border border-gray-100 bg-white text-gray-700 flex flex-col items-center justify-center hover:bg-gray-50 transition";
+            const daySpan = btn.querySelector('span:nth-child(2)');
+            if (daySpan) daySpan.className = "text-lg font-bold text-gray-800";
         }
     });
 
     if (typeof renderAgenda === 'function') {
         renderAgenda();
+    }
+    if (typeof renderDashboard === 'function') {
+        renderDashboard();
     }
 }
         function filterCategory(category) {
