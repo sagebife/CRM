@@ -954,12 +954,19 @@
 
         // STREAMING_CHUNK: Renderizando os cards e linhas da Timeline da Agenda -->
         // Renderiza a Agenda com os filtros ativos
+       // Renderiza a Agenda com os filtros ativos
         function renderAgenda() {
             const container = document.getElementById('timelineContainer');
             if (!container) return;
             container.innerHTML = '';
 
-            let list = databaseAgenda.filter(item => item.dia === selectedDay);
+            // Converte e filtra considerando se o item.dia é string de data (YYYY-MM-DD) ou número
+            let list = databaseAgenda.filter(item => {
+                if (!item.dia) return false;
+                const diaItem = String(item.dia).includes('-') ? Number(String(item.dia).split('-')[2]) : Number(item.dia);
+                return diaItem === Number(selectedDay);
+            });
+
             if (selectedCategory !== 'todos') {
                 list = list.filter(item => item.tipo === selectedCategory);
             }
@@ -969,7 +976,11 @@
             const labelEl = document.getElementById('selected-day-label');
             if (labelEl) labelEl.innerText = weekNames[selectedDay] || `Dia ${selectedDay}`;
 
-            const totalDia = databaseAgenda.filter(item => item.dia === selectedDay);
+            const totalDia = databaseAgenda.filter(item => {
+                if (!item.dia) return false;
+                const diaItem = String(item.dia).includes('-') ? Number(String(item.dia).split('-')[2]) : Number(item.dia);
+                return diaItem === Number(selectedDay);
+            });
             
             const countTodos = document.getElementById('count-todos');
             const countTransfers = document.getElementById('count-transfers');
