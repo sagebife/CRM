@@ -925,23 +925,12 @@
         // STREAMING_CHUNK: Renderizando os cards e linhas da Timeline da Agenda -->
         // Renderiza a Agenda com os filtros ativos
        // Renderiza a Agenda com os filtros ativos
-        function renderAgenda() {
-            const container = document.getElementById('timelineContainer');
-            if (!container) return;
-            container.innerHTML = '';
+        async function renderAgenda() {
+    const container = document.getElementById('timelineContainer');
+    if (!container) return;
+    container.innerHTML = '<div class="text-center py-8 text-gray-500">Carregando agenda...</div>';
 
-            // Converte e filtra considerando se o item.dia é string de data (YYYY-MM-DD) ou número
-            let list = databaseAgenda.filter(item => {
-            if (!item.dia) return false;
-            return String(item.dia) === String(window.selectedDay);
-        });
-            if (selectedCategory !== 'todos') {
-                list = list.filter(item => item.tipo === selectedCategory);
-            }
-
-            list.sort((a, b) => a.hora.localeCompare(b.hora));
-
-           const labelEl = document.getElementById('tituloDiaSelecionado');
+    const labelEl = document.getElementById('tituloDiaSelecionado');
     if (labelEl) {
         const [ano, mes, dia] = String(selectedDay).split('-');
         if (ano && mes && dia) {
@@ -952,104 +941,84 @@
             labelEl.innerText = `Agenda: ${selectedDay}`;
         }
     }
-            const totalDia = databaseAgenda.filter(item => {
-            if (!item.dia) return false;
-            return String(item.dia) === String(window.selectedDay);
+
+    try {
+        let { data, error } = await supabaseClient.from('reservas').select('*');
+        if (error) throw error;
+
+        let list = (data || []).filter(item => {
+            const dataItem = item.dia || item.date || item.data || item.data_passeio;
+            if (!dataItem) return false;
+            return String(dataItem).startsWith(String(selectedDay));
         });
-            
-            const countTodos = document.getElementById('count-todos');
-            const countTransfers = document.getElementById('count-transfers');
-            const countPasseios = document.getElementById('count-passeios');
 
-            if (countTodos) countTodos.innerText = totalDia.length;
-            if (countTransfers) countTransfers.innerText = totalDia.filter(item => item.tipo === 'transfer').length;
-            if (countPasseios) countPasseios.innerText = totalDia.filter(item => item.tipo === 'passeio').length;
+        if (selectedCategory && selectedCategory !== 'todos') {
+            list = list.filter(item => (item.tipo || item.category) === selectedCategory);
+        }
 
-            if (list.length === 0) {
-                container.innerHTML = `
-                    <div class="p-8 text-center bg-white border border-dashed border-gray-200 rounded-2xl">
-                        <p class="text-gray-400 text-sm">Nenhuma reserva ou passeio para este dia.</p>
-                        <button onclick="openQuickAddModal()" class="text-blue-900 font-bold text-xs mt-2 underline">+ Adicionar Agora</button>
-                    </div>
-                `;
-                return;
+        list.sort((a, b) => String(a.hora || '').localeCompare(String(b.hora || '')));
+
+        const countTodos = document.getElementById('count-todos');
+        const countTransfers = document.getElementById('count-transfers');
+        const countPasseios = document.getElementById('count-passeios');
+
+        if (countTodos) countTodos.innerText = list.length;
+        if (countTransfers) countTransfers.innerText = list.filter(i => (i.tipo || i.category) === 'transfer').length;
+        if (countPasseios) countPasseios.innerText = list.filter(i => (i.tipo || i.category) === 'passeio').length;
+
+        if (list.length === 0) {
+            container.innerHTML = `
+                <div class="text-center py-12 bg-white rounded-2xl border border-gray-100 shadow-sm">
+                    <p class="text-gray-500 mb-3">Nenhuma reserva ou passeio para este dia.</p>
+                    <button onclick="openNovaReservaModal()" class="text-blue-900 font-semibold text-sm hover:underline">+ Adicionar Agora</button>
+                </div>`;
+            return;
+        }
+
+        container.innerHTML = list.map(item => {
+            let statusBadge = '<span class="bg-gray-50 text-gray-700 text-[10px] font-bold px-2 py-0.5 rounded-full">Pendente</span>';
+            let borderStatusColor = 'border-l-4 border-gray-300';
+
+            const status = String(item.status || '').toLowerCase();
+            if (status.includes('concluido')) {
+                statusBadge = '<span class="bg-emerald-50 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-full">Concluído</span>';
+                borderStatusColor = 'border-l-4 border-emerald-500';
+            } else if (status.includes('andamento')) {
+                statusBadge = '<span class="bg-sky-50 text-sky-700 text-[10px] font-bold px-2 py-0.5 rounded-full">Em Andamento</span>';
+                borderStatusColor = 'border-l-4 border-sky-500';
+            } else if (status.includes('atrasado')) {
+                statusBadge = '<span class="bg-red-50 text-red-700 text-[10px] font-bold px-2 py-0.5 rounded-full">Atrasado</span>';
+                borderStatusColor = 'border-l-4 border-red-500';
+            } else if (status.includes('confirmado')) {
+                statusBadge = '<span class="bg-blue-50 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded-full">Confirmado</span>';
+                borderStatusColor = 'border-l-4 border-blue-900';
             }
 
-            list.forEach(item => {
-                let statusBadge = '';
-                let borderStatusColor = 'border-l-4';
-
-                switch(item.status) {
-                    case 'concluido':
-                        statusBadge = `<span class="bg-emerald-50 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-full"><i class="fas fa-check mr-1"></i> Concluído</span>`;
-                        borderStatusColor = 'border-emerald-500';
-                        break;
-                    case 'em-andamento':
-                        statusBadge = `<span class="bg-sky-50 text-sky-700 text-[10px] font-bold px-2 py-0.5 rounded-full animate-pulse"><i class="fas fa-spinner fa-spin mr-1"></i> Executando</span>`;
-                        borderStatusColor = 'border-sky-500';
-                        break;
-                    case 'atrasado':
-                        statusBadge = `<span class="bg-red-50 text-red-700 text-[10px] font-bold px-2 py-0.5 rounded-full"><i class="fas fa-exclamation-triangle mr-1"></i> Atraso de Voo</span>`;
-                        borderStatusColor = 'border-red-500';
-                        break;
-                    case 'confirmado':
-                        statusBadge = `<span class="bg-blue-50 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded-full"><i class="fas fa-calendar-check mr-1"></i> Confirmado</span>`;
-                        borderStatusColor = 'border-blue-900';
-                        break;
-                }
-
-                container.innerHTML += `
-                    <div class="relative bg-white p-4 sm:p-5 rounded-2xl border-l-4 ${borderStatusColor} shadow-sm border border-gray-100 hover:shadow-md transition flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <div class="absolute -left-[23px] top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-gray-300 border-2 border-gray-50"></div>
-                        
-                        <div class="flex items-start gap-3">
-                            <div class="text-center min-w-[50px] bg-gray-50 px-2 py-1.5 rounded-lg border border-gray-100">
-                                <span class="block text-sm font-black text-gray-900">${item.hora}</span>
-                                <span class="text-[9px] font-bold text-gray-400 uppercase">${item.tipo}</span>
-                            </div>
-
-                            <div class="space-y-1">
-                                <div class="flex items-center gap-2 flex-wrap">
-                                    <h4 class="font-extrabold text-gray-800 text-sm leading-none">${item.cliente}</h4>
-                                    <span class="text-xs bg-gray-100 px-1.5 py-0.5 rounded text-gray-500 font-semibold">${item.pax}</span>
-                                    ${statusBadge}
-                                </div>
-                                <p class="text-xs text-gray-600 font-medium flex items-center gap-1.5">
-                                    <i class="fas fa-map-marker-alt text-gray-400"></i> ${item.localizacao}
-                                </p>
-                                ${item.voo ? `
-                                <p class="text-[11px] font-bold flex items-center gap-1.5">
-                                    <span class="bg-gray-100 px-1.5 py-0.5 rounded text-gray-700 font-mono"><i class="fas fa-plane mr-1"></i>${item.voo}</span>
-                                    <span class="${item.status === 'atrasado' ? 'text-red-600' : 'text-gray-400 font-normal'}">${item.statusVoo}</span>
-                                </p>
-                                ` : ''}
-                            </div>
+            return `
+                <div class="relative bg-white p-4 sm:p-5 rounded-2xl ${borderStatusColor} shadow-sm border border-gray-100 mb-3">
+                    <div class="flex items-start gap-3">
+                        <div class="text-center min-w-[50px] bg-gray-50 px-2 py-1.5 rounded-lg border border-gray-100">
+                            <span class="block text-sm font-black text-gray-900">${item.hora || '--:--'}</span>
+                            <span class="text-[9px] font-bold text-gray-400 uppercase">${item.tipo || 'Serviço'}</span>
                         </div>
-
-                        <div class="flex items-center justify-between md:justify-end gap-3 pt-3 md:pt-0 border-t md:border-0 border-gray-100">
-                            <div class="flex items-center gap-2">
-                                <div class="w-8 h-8 rounded-full bg-blue-900 text-white flex items-center justify-center font-bold text-xs shadow-sm">
-                                    ${item.motorista.charAt(0)}
-                                </div>
-                                <div class="text-left">
-                                    <p class="text-[10px] text-gray-400 uppercase font-bold leading-none">Motorista</p>
-                                    <p class="text-xs font-bold text-gray-800 leading-tight">${item.motorista}</p>
-                                </div>
+                        <div class="space-y-1 flex-1">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <h4 class="font-extrabold text-gray-800 text-sm leading-none">${item.cliente || item.nome || 'Cliente'}</h4>
+                                ${statusBadge}
                             </div>
-
-                            <div class="flex items-center gap-1.5">
-                                <a href="https://wa.me/${item.telefone}" target="_blank" class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center hover:bg-emerald-100 transition shadow-sm">
-                                    <i class="fab fa-whatsapp"></i>
-                                </a>
-                                <button onclick="toggleTripStatus('${item.id}', '${item.status}')" class="w-8 h-8 rounded-lg bg-gray-50 text-gray-500 hover:bg-blue-50 hover:text-blue-900 transition flex items-center justify-center border border-gray-100">
-                                    <i class="fas fa-redo text-xs"></i>
-                                </button>
-                            </div>
+                            <p class="text-xs text-gray-600 font-medium flex items-center gap-1.5">
+                                <i class="fas fa-map-marker-alt text-gray-400"></i> ${item.localizacao || item.local || 'Local não informado'}
+                            </p>
                         </div>
                     </div>
-                `;
-            });
-        }
+                </div>`;
+        }).join('');
+
+    } catch (err) {
+        console.error("Erro ao renderizar agenda:", err);
+        container.innerHTML = '<div class="text-center py-8 text-red-500">Erro ao carregar os serviços da agenda.</div>';
+    }
+}
 
         // STREAMING_CHUNK: Renderizando os cartões executivos de Motoristas ativos -->
         // Renderiza a lista de motoristas na interface
@@ -1887,7 +1856,8 @@ async function addItem() {
 // Função para carregar os serviços no modal de reserva
 async function carregarDadosNoMenuReserva() {
     const select = document.getElementById('modalServiceSelect');
-    
+    if (!select) return; // Verificação de segurança: se o elemento não existe na tela atual, para por aqui
+
     // 1. Buscamos todas as categorias e serviços
     const { data: categorias } = await supabaseClient.from('categorias_servicos').select('*');
     const { data: servicos } = await supabaseClient.from('servicos').select('*');
@@ -1898,14 +1868,14 @@ async function carregarDadosNoMenuReserva() {
         // 2. Para cada categoria, criamos um grupo
         categorias.forEach(cat => {
             select.innerHTML += `<optgroup label="${cat.nome}">`;
-            
+
             // 3. Filtramos apenas os serviços que pertencem a esta categoria
-            const servicosDaCategoria = servicos.filter(s => s.categoria === cat.nome);
-            
+            const servicosDaCategoria = (servicos || []).filter(s => s.categoria === cat.nome);
+
             servicosDaCategoria.forEach(s => {
                 select.innerHTML += `<option value="${s.nome}" data-preco="${s.preco}">${s.nome} - R$ ${s.preco}</option>`;
             });
-            
+
             select.innerHTML += `</optgroup>`;
         });
     }
