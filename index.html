@@ -1484,30 +1484,16 @@ renderDashboard();
             labelEl.innerText = `Agenda: ${selectedDay}`;
         }
     }
+
+    // 4. Aciona a renderização dos dados
+    if (typeof renderAgenda === 'function') {
+        renderAgenda();
+    }
+    if (typeof renderDashboard === 'function') {
+        renderDashboard();
+    }
 }
-
-            // 3. Atualiza o título topo da agenda com o dia correto
-            const labelEl = document.getElementById('tituloDiaSelecionado');
-            if (labelEl) {
-                const [ano, mes, d] = String(selectedDay).split('-');
-                if (ano && mes && d) {
-                    const dataObj = new Date(ano, mes - 1, d);
-                    const nomeFormatado = dataObj.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
-                    labelEl.innerText = `Agenda: ${nomeFormatado.charAt(0).toUpperCase() + nomeFormatado.slice(1)}`;
-                } else {
-                    labelEl.innerText = `Agenda: ${selectedDay}`;
-                }
-            }
-
-            // 4. Aciona a renderização dos dados
-            if (typeof renderAgenda === 'function') {
-                renderAgenda();
-            }
-            if (typeof renderDashboard === 'function') {
-                renderDashboard();
-            }
-        }
-        function filterCategory(category) {
+function filterCategory(category) {
             selectedCategory = category;
             document.querySelectorAll('.filter-btn').forEach(btn => {
                 btn.className = "filter-btn px-4 py-2 rounded-xl bg-white border border-gray-200 text-gray-600 text-xs font-bold transition hover:bg-gray-50";
