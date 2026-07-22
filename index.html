@@ -1474,11 +1474,14 @@ renderDashboard();
         }
     }
 
-   // Atualiza visualmente todos os botões de dias removendo o estilo ativo e aplicando no selecionado
+   // Atualiza visualmente todos os botões de dias garantindo o acerto da cor
     document.querySelectorAll('.day-btn').forEach(btn => {
-        const btnDate = btn.getAttribute('data-date');
+        const btnDate = btn.getAttribute('data-date') || '';
+        const btnOnClick = btn.getAttribute('onclick') || '';
         
-        if (btnDate === selectedDay) {
+        const isMatch = (btnDate && btnDate === selectedDay) || (btnOnClick && btnOnClick.includes(String(new Date(selectedDay).getDate())));
+
+        if (isMatch) {
             btn.className = "day-btn min-w-[65px] p-3 rounded-xl border border-blue-600 bg-blue-600 text-white flex flex-col items-center justify-center shadow-md transition";
             const daySpan = btn.querySelector('span:nth-child(2)');
             if (daySpan) daySpan.className = "text-lg font-bold text-white";
@@ -1490,7 +1493,7 @@ renderDashboard();
     });
 
     if (typeof renderAgenda === 'function') {
-        renderAgenda();
+        renderAgenda(selectedDay);
     }
     if (typeof renderDashboard === 'function') {
         renderDashboard();
