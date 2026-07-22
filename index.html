@@ -728,6 +728,12 @@
                         dbIcon.className = "fas fa-cloud text-emerald-500 animate-pulse";
                     }
                     loadRealData();
+if (typeof selectDay === 'function') {
+            const hojeStr = new Date().toISOString().split('T')[0];
+            selectDay(hojeStr);
+        }
+    } catch (e) {
+                    
                 } catch (e) {
                     console.error("Falha ao inicializar o cliente Supabase", e);
                     switchToSimulationMode();
@@ -753,6 +759,10 @@
             }
             renderDashboard();
             renderAgenda();
+            if (typeof selectDay === 'function') {
+        const hojeStr = new Date().toISOString().split('T')[0];
+        selectDay(hojeStr);
+    }
             renderDrivers();
             renderFinanceiro();
             updateDriverDropdowns();
