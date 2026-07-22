@@ -941,17 +941,17 @@
 
             list.sort((a, b) => a.hora.localeCompare(b.hora));
 
-           const labelEl = document.getElementById('selected-day-label');
-if (labelEl) {
-    const [ano, mes, dia] = String(selectedDay).split('-');
-    if (ano && mes && dia) {
-        const dataObj = new Date(ano, mes - 1, dia);
-        const nomeFormatado = dataObj.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
-        labelEl.innerText = `Agenda: ${nomeFormatado.charAt(0).toUpperCase() + nomeFormatado.slice(1)}`;
-    } else {
-        labelEl.innerText = `Agenda: ${selectedDay}`;
+           const labelEl = document.getElementById('tituloDiaSelecionado');
+    if (labelEl) {
+        const [ano, mes, dia] = String(selectedDay).split('-');
+        if (ano && mes && dia) {
+            const dataObj = new Date(ano, mes - 1, dia);
+            const nomeFormatado = dataObj.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
+            labelEl.innerText = `Agenda: ${nomeFormatado.charAt(0).toUpperCase() + nomeFormatado.slice(1)}`;
+        } else {
+            labelEl.innerText = `Agenda: ${selectedDay}`;
+        }
     }
-}
             const totalDia = databaseAgenda.filter(item => {
             if (!item.dia) return false;
             return String(item.dia) === String(window.selectedDay);
