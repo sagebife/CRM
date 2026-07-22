@@ -1479,24 +1479,33 @@ renderDashboard();
 
         // Utilitários de Data e Visualizações Gerais
         function selectDay(day) {
-            selectedDay = day;
-            document.querySelectorAll('.day-btn').forEach(btn => {
-                btn.className = "day-btn min-w-[65px] p-3 rounded-xl border border-gray-100 flex flex-col items-center justify-center transition hover:bg-blue-50/50";
-                const daySpan = btn.querySelector('span:nth-child(2)');
-                if (daySpan) daySpan.className = "text-lg font-bold text-gray-800";
-            });
+    // Se o 'day' passado for apenas o número (ex: 20 ou 21), converte para o formato YYYY-MM-DD do mês/ano atual
+    if (String(day).length <= 2) {
+        const hojeObj = new Date();
+        const ano = hojeObj.getFullYear();
+        const mes = String(hojeObj.getMonth() + 1).padStart(2, '0');
+        const diaFormatado = String(day).padStart(2, '0');
+        selectedDay = `${ano}-${mes}-${diaFormatado}`;
+    } else {
+        selectedDay = day;
+    }
 
-            const activeBtn = document.getElementById(`day-${day}`);
-            if (activeBtn) {
-                activeBtn.className = "day-btn min-w-[65px] p-3 rounded-xl bg-blue-900 border border-blue-900 text-white flex flex-col items-center justify-center transition shadow-md shadow-blue-900/25";
-                const daySpan = activeBtn.querySelector('span:nth-child(2)');
-                if (daySpan) daySpan.className = "text-lg font-bold text-white";
-            }
+    document.querySelectorAll('.day-btn').forEach(btn => {
+        btn.className = "day-btn min-w-[65px] p-3 rounded-xl border border-gray-100 flex flex-col items-center justify-center transition hover:border-gray-300";
+        const daySpan = btn.querySelector('span:nth-child(2)');
+        if (daySpan) daySpan.className = "text-lg font-bold text-gray-800";
+    });
 
-            renderAgenda();
-            showToast(`Agenda de dia ${day}`);
-        }
+    const activeBtn = document.getElementById(`day-${day}`);
+    if (activeBtn) {
+        activeBtn.className = "day-btn min-w-[65px] p-3 rounded-xl bg-blue-900 border border-blue-900 text-white flex flex-col items-center justify-center transition";
+        const daySpan = activeBtn.querySelector('span:nth-child(2)');
+        if (daySpan) daySpan.className = "text-lg font-bold text-white";
+    }
 
+    renderAgenda();
+    showToast(`Agenda de dia ${day}`);
+}
         function filterCategory(category) {
             selectedCategory = category;
             document.querySelectorAll('.filter-btn').forEach(btn => {
