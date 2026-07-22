@@ -879,8 +879,13 @@
 
         // STREAMING_CHUNK: Renderizando os cards dinâmicos do Dashboard principal -->
         // Renderiza elementos do Dashboard
+        // 3. Dashboard sincronizado dinamicamente com o dia selecionado (selectedDay)
         function renderDashboard() {
-            const hoje = databaseAgenda.filter(item => item.dia === 14);
+            // Filtra as atividades do banco baseando-se estritamente na data selecionada (selectedDay)
+            const hoje = databaseAgenda.filter(item => {
+                const itemDia = String(item.dia || '').trim();
+                return itemDia === String(selectedDay) || itemDia === String(new Date(selectedDay).getDate());
+            });
             
             const dashChegadas = document.getElementById('dash-chegadas-hoje');
             const dashPasseios = document.getElementById('dash-passeios-hoje');
@@ -891,7 +896,6 @@
             if (dashPasseios) dashPasseios.innerText = hoje.filter(item => item.tipo === 'passeio').length;
             if (dashDrivers) dashDrivers.innerText = drivers.length;
 
-            // Calcula o faturamento estimado do mês (soma de todos os faturamentos de reservas locais/banco)
             const faturamentoTotal = databaseAgenda.reduce((sum, item) => sum + (Number(item.valorCliente) || 0), 0);
             if (dashFaturamento) dashFaturamento.innerText = `$ ${faturamentoTotal.toLocaleString()}`;
 
@@ -900,32 +904,23 @@
             container.innerHTML = '';
 
             if (hoje.length === 0) {
-                container.innerHTML = `<p class="text-xs text-gray-400 py-3 text-center">Nenhuma atividade hoje.</p>`;
+                container.innerHTML = `<p class="text-xs text-gray-400 py-3 text-center">Nenhuma atividade para esta data.</p>`;
                 return;
             }
 
             hoje.forEach(item => {
-                let badge = '';
-                let bgCircle = 'bg-blue-100 text-blue-900';
-                let icon = '<i class="fas fa-bus"></i>';
-
-                if (item.tipo === 'passeio') {
-                    bgCircle = 'bg-orange-100 text-orange-600';
-                    icon = '<i class="fas fa-camera"></i>';
-                }
-
-                if (item.status === 'concluido') {
-                    badge = `<span class="bg-emerald-50 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-full">Executado</span>`;
-                } else if (item.status === 'em-andamento') {
-                    badge = `<span class="bg-sky-50 text-sky-700 text-[10px] font-bold px-2 py-0.5 rounded-full animate-pulse">Em Curso</span>`;
-                } else if (item.status === 'atrasado') {
-                    badge = `<span class="bg-red-50 text-red-700 text-[10px] font-bold px-2 py-0.5 rounded-full">Atraso</span>`;
-                } else {
-                    badge = `<span class="bg-blue-50 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded-full">Confirmado</span>`;
-                }
+                let badge = '<span class="bg-blue-50 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded-full">Confirmado</span>';
+                if (item.status === 'concluido') badge = `<span class="bg-emerald-50 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-full">Executado</span>`;
 
                 container.innerHTML += `
-`;
+                    <div class="p-3 bg-gray-50 rounded-xl border border-gray-100 flex items-center justify-between text-xs">
+                        <div>
+                            <p class="font-bold text-gray-900">${item.hora || '--:--'} - ${item.cliente || 'Cliente'}</p>
+                            <p class="text-[11px] text-gray-600">${item.localizacao || ''}</p>
+                        </div>
+                        ${badge}
+                    </div>
+                `;
             });
         }
 
@@ -1454,51 +1449,39 @@ renderDashboard();
         }
 
         // Utilitários de Data e Visualizações Gerais
-    function selectDay(day) {
-    if (String(day).length <= 2) {
-        const hojeObj = new Date();
-        const ano = hojeObj.getFullYear();
-        const mes = String(hojeObj.getMonth() + 1).padStart(2, '0');
-        const diaFormatado = String(day).padStart(2, '0');
-        selectedDay = `${ano}-${mes}-${diaFormatado}`;
-    } else {
-        const [ano, mes, d] = String(day).split('-');
-        if (ano && mes && d) {
-            const dataLocal = new Date(ano, mes - 1, d);
-            const aLoc = dataLocal.getFullYear();
-            const mLoc = String(dataLocal.getMonth() + 1).padStart(2, '0');
-            const dLoc = String(dataLocal.getDate()).padStart(2, '0');
-            selectedDay = `${aLoc}-${mLoc}-${dLoc}`;
-        } else {
-            selectedDay = day;
+    // 1. Função de seleção de dia corrigida para tratar o formato ISO corretamente
+        function selectDay(day) {
+            if (String(day).length <= 2) {
+                const hojeObj = new Date();
+                const ano = hojeObj.getFullYear();
+                const mes = String(hojeObj.getMonth() + 1).padStart(2, '0');
+                const diaFormatado = String(day).padStart(2, '0');
+                selectedDay = `${ano}-${mes}-${diaFormatado}`;
+            } else {
+                selectedDay = day;
+            }
+
+            // Atualiza visualmente os botões do carrossel usando data-date
+            document.querySelectorAll('.day-btn').forEach(btn => {
+                const btnDate = btn.getAttribute('data-date');
+                if (btnDate === selectedDay) {
+                    btn.className = "day-btn min-w-[65px] p-3 rounded-xl border border-blue-600 bg-blue-600 text-white flex flex-col items-center justify-center shadow-md transition";
+                    const daySpan = btn.querySelector('span:nth-child(2)');
+                    if (daySpan) daySpan.className = "text-lg font-bold text-white";
+                } else {
+                    btn.className = "day-btn min-w-[65px] p-3 rounded-xl border border-gray-100 bg-white text-gray-700 flex flex-col items-center justify-center hover:bg-gray-50 transition";
+                    const daySpan = btn.querySelector('span:nth-child(2)');
+                    if (daySpan) daySpan.className = "text-lg font-bold text-gray-800";
+                }
+            });
+
+            if (typeof renderAgenda === 'function') {
+                renderAgenda();
+            }
+            if (typeof renderDashboard === 'function') {
+                renderDashboard();
+            }
         }
-    }
-
-   // Atualiza visualmente todos os botões de dias garantindo o acerto da cor
-    document.querySelectorAll('.day-btn').forEach(btn => {
-        const btnDate = btn.getAttribute('data-date') || '';
-        const btnOnClick = btn.getAttribute('onclick') || '';
-        
-        const isMatch = (btnDate && btnDate === selectedDay) || (btnOnClick && btnOnClick.includes(String(new Date(selectedDay).getDate())));
-
-        if (isMatch) {
-            btn.className = "day-btn min-w-[65px] p-3 rounded-xl border border-blue-600 bg-blue-600 text-white flex flex-col items-center justify-center shadow-md transition";
-            const daySpan = btn.querySelector('span:nth-child(2)');
-            if (daySpan) daySpan.className = "text-lg font-bold text-white";
-        } else {
-            btn.className = "day-btn min-w-[65px] p-3 rounded-xl border border-gray-100 bg-white text-gray-700 flex flex-col items-center justify-center hover:bg-gray-50 transition";
-            const daySpan = btn.querySelector('span:nth-child(2)');
-            if (daySpan) daySpan.className = "text-lg font-bold text-gray-800";
-        }
-    });
-
-    if (typeof renderAgenda === 'function') {
-        renderAgenda(selectedDay);
-    }
-    if (typeof renderDashboard === 'function') {
-        renderDashboard();
-    }
-}
         function filterCategory(category) {
             selectedCategory = category;
             document.querySelectorAll('.filter-btn').forEach(btn => {
@@ -1641,33 +1624,35 @@ renderDashboard();
                 modal.classList.add('opacity-0', 'pointer-events-none');
             }
         }
-function gerarDiasAgenda() {
-    const containerDias = document.getElementById('containerDiasAgenda');
-    if (!containerDias) return;
-    containerDias.innerHTML = '';
+// 2. Geração correta do carrossel injetando o atributo data-date indispensável
+        function gerarDiasAgenda() {
+            const containerDias = document.getElementById('containerDiasAgenda');
+            if (!containerDias) return;
+            containerDias.innerHTML = '';
 
-    const hoje = new Date();
+            const hoje = new Date();
 
-    for (let i = -3; i <= 3; i++) {
-        const d = new Date();
-        d.setDate(hoje.getDate() + i);
+            for (let i = -3; i <= 3; i++) {
+                const d = new Date();
+                d.setDate(hoje.getDate() + i);
 
-       const anoLoc = d.getFullYear();
-const mesLoc = String(d.getMonth() + 1).padStart(2, '0');
-const diaLoc = String(d.getDate()).padStart(2, '0');
-const diaStr = `${anoLoc}-${mesLoc}-${diaLoc}`;
-        const diaNumero = d.getDate();
-        const diaSemana = d.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '');
-        const isSelected = diaStr === window.selectedDay;
+                const anoLoc = d.getFullYear();
+                const mesLoc = String(d.getMonth() + 1).padStart(2, '0');
+                const diaLoc = String(d.getDate()).padStart(2, '0');
+                const diaStr = `${anoLoc}-${mesLoc}-${diaLoc}`;
+                
+                const diaNumero = d.getDate();
+                const diaSemana = d.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '');
+                const isSelected = diaStr === selectedDay;
 
-        containerDias.innerHTML += `
-        <div id="day-${diaStr}" onclick="selectDay('${diaStr}')" class="cursor-pointer px-4 py-3 rounded-2xl text-center transition ${isSelected ? 'bg-blue-900 text-white shadow-md' : 'bg-white hover:bg-gray-100 text-gray-700 border border-gray-100'}">
-            <span class="block text-xs uppercase">${diaSemana}</span>
-            <span class="text-lg font-bold">${diaNumero}</span>
-        </div>
-    `;
-    }
-}
+                containerDias.innerHTML += `
+                <div data-date="${diaStr}" onclick="selectDay('${diaStr}')" class="day-btn cursor-pointer min-w-[65px] p-3 rounded-xl text-center transition ${isSelected ? 'border border-blue-600 bg-blue-600 text-white shadow-md' : 'bg-white hover:bg-gray-100 text-gray-700 border border-gray-100'}">
+                    <span class="block text-xs uppercase ${isSelected ? 'text-white' : ''}">${diaSemana}</span>
+                    <span class="text-lg font-bold ${isSelected ? 'text-white' : 'text-gray-800'}">${diaNumero}</span>
+                </div>
+                `;
+            }
+        }
 function carregarReservasDia(dataStr) {
     window.selectedDay = dataStr;
     
