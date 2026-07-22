@@ -1496,7 +1496,7 @@ renderDashboard();
         if (daySpan) daySpan.className = "text-lg font-bold text-gray-800";
     });
 
-    const activeBtn = document.getElementById(`day-${day}`);
+   const activeBtn = document.getElementById(`day-${selectedDay}`);
     if (activeBtn) {
         activeBtn.className = "day-btn min-w-[65px] p-3 rounded-xl bg-blue-900 border border-blue-900 text-white flex flex-col items-center justify-center transition";
         const daySpan = activeBtn.querySelector('span:nth-child(2)');
