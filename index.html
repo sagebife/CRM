@@ -927,100 +927,95 @@
         // STREAMING_CHUNK: Renderizando os cards e linhas da Timeline da Agenda -->
         // Renderiza a Agenda com os filtros ativos
        // Renderiza a Agenda com os filtros ativos
-        async function renderAgenda() {
-    const container = document.getElementById('timelineContainer');
-    if (!container) return;
-    container.innerHTML = '<div class="text-center py-8 text-gray-500">Carregando agenda...</div>';
+      async function renderAgenda() {
+            const container = document.getElementById('timelineContainer');
+            if (!container) return;
+            container.innerHTML = '<div class="text-center py-8 text-gray-500">Carregando agenda...</div>';
 
-    const labelEl = document.getElementById('tituloDiaSelecionado');
-    if (labelEl) {
-        const [ano, mes, dia] = String(selectedDay).split('-');
-        if (ano && mes && dia) {
-            const dataObj = new Date(ano, mes - 1, dia);
-            const nomeFormatado = dataObj.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
-            labelEl.innerText = `Agenda: ${nomeFormatado.charAt(0).toUpperCase() + nomeFormatado.slice(1)}`;
-        } else {
-            labelEl.innerText = `Agenda: ${selectedDay}`;
-        }
-    }
+            try {
+                // Puxa do Supabase ou usa o mock local se estiver simulando
+                let list = [];
+                if (isConnectedToSupabase && supabaseClient) {
+                    let { data, error } = await supabaseClient.from('reservas').select('*');
+                    if (error) throw error;
+                    list = data || [];
+                } else {
+                    list = [...databaseAgenda];
+                }
 
-    try {
-        let { data, error } = await supabaseClient.from('reservas').select('*');
-        if (error) throw error;
+                // Filtro rigoroso comparando a string da data (ex: '2026-07-22')
+                list = list.filter(item => {
+                    const dataItem = String(item.dia || item.date || item.data || '').trim();
+                    return dataItem === String(selectedDay);
+                });
 
-        let list = (data || []).filter(item => {
-            const dataItem = item.dia || item.date || item.data || item.data_passeio;
-            if (!dataItem) return false;
-            return String(dataItem).startsWith(String(selectedDay));
-        });
+                if (selectedCategory && selectedCategory !== 'todos') {
+                    list = list.filter(item => (item.tipo || item.category) === selectedCategory);
+                }
 
-        if (selectedCategory && selectedCategory !== 'todos') {
-            list = list.filter(item => (item.tipo || item.category) === selectedCategory);
-        }
+                list.sort((a, b) => String(a.hora || '').localeCompare(String(b.hora || '')));
 
-        list.sort((a, b) => String(a.hora || '').localeCompare(String(b.hora || '')));
+                const countTodos = document.getElementById('count-todos');
+                const countTransfers = document.getElementById('count-transfers');
+                const countPasseios = document.getElementById('count-passeios');
 
-        const countTodos = document.getElementById('count-todos');
-        const countTransfers = document.getElementById('count-transfers');
-        const countPasseios = document.getElementById('count-passeios');
+                if (countTodos) countTodos.innerText = list.length;
+                if (countTransfers) countTransfers.innerText = list.filter(i => (i.tipo || i.category) === 'transfer').length;
+                if (countPasseios) countPasseios.innerText = list.filter(i => (i.tipo || i.category) === 'passeio').length;
 
-        if (countTodos) countTodos.innerText = list.length;
-        if (countTransfers) countTransfers.innerText = list.filter(i => (i.tipo || i.category) === 'transfer').length;
-        if (countPasseios) countPasseios.innerText = list.filter(i => (i.tipo || i.category) === 'passeio').length;
+                if (list.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-center py-12 bg-white rounded-2xl border border-gray-100 shadow-sm">
+                            <p class="text-gray-500 mb-3">Nenhuma reserva ou passeio para este dia (${selectedDay}).</p>
+                            <button onclick="openQuickAddModal()" class="text-blue-900 font-semibold text-sm hover:underline">+ Adicionar Agora</button>
+                        </div>`;
+                    return;
+                }
 
-        if (list.length === 0) {
-            container.innerHTML = `
-                <div class="text-center py-12 bg-white rounded-2xl border border-gray-100 shadow-sm">
-                    <p class="text-gray-500 mb-3">Nenhuma reserva ou passeio para este dia.</p>
-                    <button onclick="openNovaReservaModal()" class="text-blue-900 font-semibold text-sm hover:underline">+ Adicionar Agora</button>
-                </div>`;
-            return;
-        }
+                container.innerHTML = list.map(item => {
+                    let statusBadge = '<span class="bg-gray-50 text-gray-700 text-[10px] font-bold px-2 py-0.5 rounded-full">Pendente</span>';
+                    let borderStatusColor = 'border-l-4 border-gray-300';
 
-        container.innerHTML = list.map(item => {
-            let statusBadge = '<span class="bg-gray-50 text-gray-700 text-[10px] font-bold px-2 py-0.5 rounded-full">Pendente</span>';
-            let borderStatusColor = 'border-l-4 border-gray-300';
+                    const status = String(item.status || '').toLowerCase();
+                    if (status.includes('concluido')) {
+                        statusBadge = '<span class="bg-emerald-50 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-full">Concluído</span>';
+                        borderStatusColor = 'border-l-4 border-emerald-500';
+                    } else if (status.includes('andamento')) {
+                        statusBadge = '<span class="bg-sky-50 text-sky-700 text-[10px] font-bold px-2 py-0.5 rounded-full">Em Andamento</span>';
+                        borderStatusColor = 'border-l-4 border-sky-500';
+                    } else if (status.includes('atrasado')) {
+                        statusBadge = '<span class="bg-red-50 text-red-700 text-[10px] font-bold px-2 py-0.5 rounded-full">Atrasado</span>';
+                        borderStatusColor = 'border-l-4 border-red-500';
+                    } else if (status.includes('confirmado')) {
+                        statusBadge = '<span class="bg-blue-50 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded-full">Confirmado</span>';
+                        borderStatusColor = 'border-l-4 border-blue-900';
+                    }
 
-            const status = String(item.status || '').toLowerCase();
-            if (status.includes('concluido')) {
-                statusBadge = '<span class="bg-emerald-50 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-full">Concluído</span>';
-                borderStatusColor = 'border-l-4 border-emerald-500';
-            } else if (status.includes('andamento')) {
-                statusBadge = '<span class="bg-sky-50 text-sky-700 text-[10px] font-bold px-2 py-0.5 rounded-full">Em Andamento</span>';
-                borderStatusColor = 'border-l-4 border-sky-500';
-            } else if (status.includes('atrasado')) {
-                statusBadge = '<span class="bg-red-50 text-red-700 text-[10px] font-bold px-2 py-0.5 rounded-full">Atrasado</span>';
-                borderStatusColor = 'border-l-4 border-red-500';
-            } else if (status.includes('confirmado')) {
-                statusBadge = '<span class="bg-blue-50 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded-full">Confirmado</span>';
-                borderStatusColor = 'border-l-4 border-blue-900';
-            }
-
-            return `
-                <div class="relative bg-white p-4 sm:p-5 rounded-2xl ${borderStatusColor} shadow-sm border border-gray-100 mb-3">
-                    <div class="flex items-start gap-3">
-                        <div class="text-center min-w-[50px] bg-gray-50 px-2 py-1.5 rounded-lg border border-gray-100">
-                            <span class="block text-sm font-black text-gray-900">${item.hora || '--:--'}</span>
-                            <span class="text-[9px] font-bold text-gray-400 uppercase">${item.tipo || 'Serviço'}</span>
-                        </div>
-                        <div class="space-y-1 flex-1">
-                            <div class="flex items-center gap-2 flex-wrap">
-                                <h4 class="font-extrabold text-gray-800 text-sm leading-none">${item.cliente || item.nome || 'Cliente'}</h4>
-                                ${statusBadge}
+                    return `
+                        <div class="relative bg-white p-4 sm:p-5 rounded-2xl ${borderStatusColor} shadow-sm border border-gray-100 mb-3">
+                            <div class="flex items-start gap-3">
+                                <div class="text-center min-w-[50px] bg-gray-50 px-2 py-1.5 rounded-lg border border-gray-100">
+                                    <span class="block text-sm font-black text-gray-900">${item.hora || '--:--'}</span>
+                                    <span class="text-[9px] font-bold text-gray-400 uppercase">${item.tipo || 'Serviço'}</span>
+                                </div>
+                                <div class="space-y-1 flex-1">
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <h4 class="font-extrabold text-gray-800 text-sm leading-none">${item.cliente || item.nome || 'Cliente'}</h4>
+                                        ${statusBadge}
+                                    </div>
+                                    <p class="text-xs text-gray-600 font-medium flex items-center gap-1.5">
+                                        <i class="fas fa-map-marker-alt text-gray-400"></i> ${item.localizacao || item.local || 'Local não informado'}
+                                    </p>
+                                </div>
                             </div>
-                            <p class="text-xs text-gray-600 font-medium flex items-center gap-1.5">
-                                <i class="fas fa-map-marker-alt text-gray-400"></i> ${item.localizacao || item.local || 'Local não informado'}
-                            </p>
-                        </div>
-                    </div>
-                </div>`;
-        }).join('');
+                        </div>`;
+                }).join('');
 
-    } catch (err) {
-        console.error("Erro ao renderizar agenda:", err);
-        container.innerHTML = '<div class="text-center py-8 text-red-500">Erro ao carregar os serviços da agenda.</div>';
-    }
-}
+            } catch (err) {
+                console.error("Erro ao renderizar agenda:", err);
+                container.innerHTML = '<div class="text-center py-8 text-red-500">Erro ao carregar os serviços da agenda.</div>';
+            }
+        }
 
         // STREAMING_CHUNK: Renderizando os cartões executivos de Motoristas ativos -->
         // Renderiza a lista de motoristas na interface
@@ -1451,30 +1446,39 @@ renderDashboard();
         // Utilitários de Data e Visualizações Gerais
     // 1. Função de seleção de dia corrigida para tratar o formato ISO corretamente
         function selectDay(day) {
-            if (String(day).length <= 2) {
-                const hojeObj = new Date();
-                const ano = hojeObj.getFullYear();
-                const mes = String(hojeObj.getMonth() + 1).padStart(2, '0');
-                const diaFormatado = String(day).padStart(2, '0');
-                selectedDay = `${ano}-${mes}-${diaFormatado}`;
-            } else {
-                selectedDay = day;
-            }
+            selectedDay = day;
 
-            // Atualiza visualmente os botões do carrossel usando data-date
-            document.querySelectorAll('.day-btn').forEach(btn => {
-                const btnDate = btn.getAttribute('data-date');
-                if (btnDate === selectedDay) {
-                    btn.className = "day-btn min-w-[65px] p-3 rounded-xl border border-blue-600 bg-blue-600 text-white flex flex-col items-center justify-center shadow-md transition";
-                    const daySpan = btn.querySelector('span:nth-child(2)');
-                    if (daySpan) daySpan.className = "text-lg font-bold text-white";
-                } else {
-                    btn.className = "day-btn min-w-[65px] p-3 rounded-xl border border-gray-100 bg-white text-gray-700 flex flex-col items-center justify-center hover:bg-gray-50 transition";
-                    const daySpan = btn.querySelector('span:nth-child(2)');
-                    if (daySpan) daySpan.className = "text-lg font-bold text-gray-800";
-                }
+            // 1. Remove o azul de TODOS os botões do carrossel e reseta o estilo padrão
+            document.querySelectorAll('[id^="day-"]').forEach(btn => {
+                btn.className = "cursor-pointer min-w-[65px] p-3 rounded-2xl text-center transition bg-white hover:bg-gray-100 text-gray-700 border border-gray-100";
+                const spans = btn.querySelectorAll('span');
+                if (spans[0]) spans[0].className = "block text-xs uppercase text-gray-500";
+                if (spans[1]) spans[1].className = "text-lg font-bold text-gray-800";
             });
 
+            // 2. Pinta EXATAMENTE o botão clicado de azul
+            const activeBtn = document.getElementById(`day-${day}`);
+            if (activeBtn) {
+                activeBtn.className = "cursor-pointer min-w-[65px] p-3 rounded-2xl text-center transition bg-blue-900 text-white shadow-md";
+                const spans = activeBtn.querySelectorAll('span');
+                if (spans[0]) spans[0].className = "block text-xs uppercase text-white";
+                if (spans[1]) spans[1].className = "text-lg font-bold text-white";
+            }
+
+            // 3. Atualiza o título topo da agenda com o dia correto
+            const labelEl = document.getElementById('tituloDiaSelecionado');
+            if (labelEl) {
+                const [ano, mes, d] = String(selectedDay).split('-');
+                if (ano && mes && d) {
+                    const dataObj = new Date(ano, mes - 1, d);
+                    const nomeFormatado = dataObj.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
+                    labelEl.innerText = `Agenda: ${nomeFormatado.charAt(0).toUpperCase() + nomeFormatado.slice(1)}`;
+                } else {
+                    labelEl.innerText = `Agenda: ${selectedDay}`;
+                }
+            }
+
+            // 4. Aciona a renderização dos dados
             if (typeof renderAgenda === 'function') {
                 renderAgenda();
             }
