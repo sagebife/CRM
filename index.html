@@ -218,41 +218,18 @@
         <!-- VIEW: AGENDA -->
         <div id="view-agenda" class="view-section hidden space-y-6">
             <!-- Seletor de Datas -->
+            <!-- Seletor de Datas -->
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
                 <div class="flex items-center justify-between mb-3">
                     <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Selecione o Dia</span>
-                    <span class="text-sm font-semibold text-blue-900">Julho 2026</span>
+                    <span class="text-sm font-semibold text-blue-900" id="labelMesAnoAgenda">Julho 2026</span>
                 </div>
                 
-                <!-- Carrossel de Dias Horizontal -->
-                <div class="flex gap-2 overflow-x-auto pb-2 justify-between">
-                    <button onclick="selectDay(12)" class="day-btn min-w-[65px] p-3 rounded-xl border border-gray-100 flex flex-col items-center justify-center transition hover:bg-blue-50/50" id="day-12">
-                        <span class="text-xs text-gray-500 font-medium">Dom</span>
-                        <span class="text-lg font-bold text-gray-800">12</span>
-                    </button>
-                    <button onclick="selectDay(13)" class="day-btn min-w-[65px] p-3 rounded-xl border border-gray-100 flex flex-col items-center justify-center transition hover:bg-blue-50/50" id="day-13">
-                        <span class="text-xs text-gray-500 font-medium">Seg</span>
-                        <span class="text-lg font-bold text-gray-800">13</span>
-                    </button>
-                    <button onclick="selectDay(14)" class="day-btn min-w-[65px] p-3 rounded-xl bg-blue-900 border border-blue-900 text-white flex flex-col items-center justify-center transition shadow-md shadow-blue-900/25" id="day-14">
-                        <span class="text-xs text-blue-200 font-medium">HOJE</span>
-                        <span class="text-lg font-bold text-white">14</span>
-                    </button>
-                    <button onclick="selectDay(15)" class="day-btn min-w-[65px] p-3 rounded-xl border border-gray-100 flex flex-col items-center justify-center transition hover:bg-blue-50/50" id="day-15">
-                        <span class="text-xs text-gray-500 font-medium">Qua</span>
-                        <span class="text-lg font-bold text-gray-800">15</span>
-                    </button>
-                    <button onclick="selectDay(16)" class="day-btn min-w-[65px] p-3 rounded-xl border border-gray-100 flex flex-col items-center justify-center transition hover:bg-blue-50/50" id="day-16">
-                        <span class="text-xs text-gray-500 font-medium">Qui</span>
-                        <span class="text-lg font-bold text-gray-800">16</span>
-                    </button>
-                    <button onclick="selectDay(17)" class="day-btn min-w-[65px] p-3 rounded-xl border border-gray-100 flex flex-col items-center justify-center transition hover:bg-blue-50/50" id="day-17">
-                        <span class="text-xs text-gray-500 font-medium">Sex</span>
-                        <span class="text-lg font-bold text-gray-800">17</span>
-                    </button>
+                <!-- Carrossel de Dias Horizontal Dinâmico -->
+                <div id="containerDiasAgenda" class="flex gap-2 overflow-x-auto pb-2 justify-between">
+                    <!-- Gerado via JavaScript -->
                 </div>
             </div>
-
             <!-- Filtros Rápidos -->
             <div class="flex gap-2">
                 <button onclick="filterCategory('todos')" id="btn-filter-todos" class="filter-btn px-4 py-2 rounded-xl bg-gray-900 text-white text-xs font-bold transition shadow-sm">
@@ -2309,7 +2286,22 @@ async function carregarMesInteiro() {
         console.error("Erro ao carregar mês:", err);
     }
 }
+// Gera os dias do carrossel dinamicamente
+        function gerarDiasAgenda() {
+            const container = document.getElementById('containerDiasAgenda');
+            if (!container) return;
+            container.innerHTML = '';
 
+            for (let i = 12; i <= 18; i++) {
+                const isSelected = i === Number(selectedDay);
+                container.innerHTML += `
+                    <button onclick="selectDay(${i})" class="day-btn min-w-[65px] p-3 rounded-2xl border transition flex flex-col items-center justify-center ${isSelected ? 'bg-blue-900 border-blue-900 text-white shadow-md' : 'border-gray-100 hover:bg-blue-50/50 text-gray-800'}" id="day-${i}">
+                        <span class="text-[10px] ${isSelected ? 'text-blue-200' : 'text-gray-400'} font-medium">Dia</span>
+                        <span class="text-lg font-bold">${i}</span>
+                    </button>
+                `;
+            }
+        }
 </script>
 
 </div>
