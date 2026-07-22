@@ -940,11 +940,9 @@
 
             // Converte e filtra considerando se o item.dia é string de data (YYYY-MM-DD) ou número
             let list = databaseAgenda.filter(item => {
-                if (!item.dia) return false;
-                const diaItem = String(item.dia).includes('-') ? Number(String(item.dia).split('-')[2]) : Number(item.dia);
-                return diaItem === Number(selectedDay);
-            });
-
+            if (!item.dia) return false;
+            return String(item.dia) === String(window.selectedDay);
+        });
             if (selectedCategory !== 'todos') {
                 list = list.filter(item => item.tipo === selectedCategory);
             }
@@ -955,10 +953,9 @@
             if (labelEl) labelEl.innerText = weekNames[selectedDay] || `Dia ${selectedDay}`;
 
             const totalDia = databaseAgenda.filter(item => {
-                if (!item.dia) return false;
-                const diaItem = String(item.dia).includes('-') ? Number(String(item.dia).split('-')[2]) : Number(item.dia);
-                return diaItem === Number(selectedDay);
-            });
+            if (!item.dia) return false;
+            return String(item.dia) === String(window.selectedDay);
+        });
             
             const countTodos = document.getElementById('count-todos');
             const countTransfers = document.getElementById('count-transfers');
@@ -1669,14 +1666,21 @@ function gerarDiasAgenda() {
 function carregarReservasDia(dataStr) {
     window.selectedDay = dataStr;
     
-    // Atualiza o título visual do dia selecionado
-    const tituloElemento = document.getElementById('tituloDiaSelecionado'); // ou o ID correspondente ao título da agenda
+    const [ano, mes, dia] = dataStr.split('-');
+    const dataObj = new Date(ano, mes - 1, dia);
+    const nomeFormatado = dataObj.toLocaleDateString('pt-BR', { 
+        weekday: 'long', 
+        day: 'numeric', 
+        month: 'long' 
+    });
+
+    const tituloElemento = document.getElementById('selected-day-label');
     if (tituloElemento) {
-        tituloElemento.innerText = dataStr;
+        tituloElemento.innerText = `Agenda: ${nomeFormatado.charAt(0).toUpperCase() + nomeFormatado.slice(1)}`;
     }
 
-    gerarDiasAgenda(); // Atualiza os botões para mudar o destaque azul
-    renderAgenda();    // Carrega as reservas do dia escolhido
+    gerarDiasAgenda(); 
+    renderAgenda();    
 }
         function openConfirmModal(title, text) {
             document.getElementById('confirmTitle').innerText = title;
