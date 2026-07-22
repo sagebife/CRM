@@ -1450,7 +1450,8 @@ renderDashboard();
         // Utilitários de Data e Visualizações Gerais
     // 1. Função de seleção de dia corrigida para tratar o formato ISO corretamente
         function selectDay(day) {
-            selectedDay = day;
+    console.log("Dia clicado/recebido:", day, "ID procurado:", `day-${day}`);
+    selectedDay = day;
 
            // 1. Remove o azul de QUALQUER botão do carrossel baseado na estrutura de data do ID
     document.querySelectorAll('[id*="2026-"]').forEach(btn => {
