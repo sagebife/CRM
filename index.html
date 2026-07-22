@@ -1453,7 +1453,7 @@ renderDashboard();
             selectedDay = day;
 
             // 1. Remove o azul de TODOS os botões do carrossel e reseta o estilo padrão
-            document.querySelectorAll('[id^="day-"]').forEach(btn => {
+            document.querySelectorAll('.cursor-pointer.min-w-[65px]').forEach(btn => {
                 btn.className = "cursor-pointer min-w-[65px] p-3 rounded-2xl text-center transition bg-white hover:bg-gray-100 text-gray-700 border border-gray-100";
                 const spans = btn.querySelectorAll('span');
                 if (spans[0]) spans[0].className = "block text-xs uppercase text-gray-500";
