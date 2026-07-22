@@ -1478,7 +1478,7 @@ renderDashboard();
         }
 
         // Utilitários de Data e Visualizações Gerais
-       function selectDay(day) {
+     function selectDay(day) {
     if (String(day).length <= 2) {
         const hojeObj = new Date();
         const ano = hojeObj.getFullYear();
@@ -1496,6 +1496,26 @@ renderDashboard();
         } else {
             selectedDay = day;
         }
+    }
+
+    // Atualiza o visual de todos os botões de dias da barra superior
+    document.querySelectorAll('.day-btn').forEach(btn => {
+        btn.className = "day-btn min-w-[65px] p-3 rounded-xl border border-gray-100 flex flex-col items-center justify-center transition-all bg-white hover:border-gray-200 cursor-pointer shadow-sm";
+        const daySpan = btn.querySelector('span:nth-child(2)');
+        if (daySpan) daySpan.className = "text-lg font-bold text-gray-800";
+    });
+
+    // Destaca o botão correspondente ao dia selecionado
+    const activeBtn = document.getElementById(`day-${selectedDay}`);
+    if (activeBtn) {
+        activeBtn.className = "day-btn min-w-[65px] p-3 rounded-xl bg-blue-900 border border-blue-900 text-white flex flex-col items-center justify-center transition-all shadow-md cursor-pointer";
+        const daySpan = activeBtn.querySelector('span:nth-child(2)');
+        if (daySpan) daySpan.className = "text-lg font-bold text-white";
+    }
+
+    // Renderiza a agenda e busca os serviços daquele dia do Supabase
+    if (typeof renderAgenda === 'function') {
+        renderAgenda();
     }
 }
 
