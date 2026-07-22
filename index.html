@@ -1452,22 +1452,22 @@ renderDashboard();
         function selectDay(day) {
             selectedDay = day;
 
-            // 1. Remove o azul de TODOS os botões do carrossel e reseta o estilo padrão
-            document.querySelectorAll('.cursor-pointer.min-w-[65px]').forEach(btn => {
-                btn.className = "cursor-pointer min-w-[65px] p-3 rounded-2xl text-center transition bg-white hover:bg-gray-100 text-gray-700 border border-gray-100";
-                const spans = btn.querySelectorAll('span');
-                if (spans[0]) spans[0].className = "block text-xs uppercase text-gray-500";
-                if (spans[1]) spans[1].className = "text-lg font-bold text-gray-800";
-            });
+           // 1. Remove o azul de QUALQUER botão do carrossel baseado na estrutura de data do ID
+    document.querySelectorAll('[id*="2026-"]').forEach(btn => {
+        btn.className = "cursor-pointer min-w-[65px] p-3 rounded-2xl text-center transition bg-white hover:bg-gray-100";
+        const spans = btn.querySelectorAll('span');
+        if (spans[0]) spans[0].className = "block text-xs uppercase text-gray-500";
+        if (spans[1]) spans[1].className = "text-lg font-bold text-gray-800";
+    });
 
-            // 2. Pinta EXATAMENTE o botão clicado de azul
-            const activeBtn = document.getElementById(`day-${day}`);
-            if (activeBtn) {
-                activeBtn.className = "cursor-pointer min-w-[65px] p-3 rounded-2xl text-center transition bg-blue-900 text-white shadow-md";
-                const spans = activeBtn.querySelectorAll('span');
-                if (spans[0]) spans[0].className = "block text-xs uppercase text-white";
-                if (spans[1]) spans[1].className = "text-lg font-bold text-white";
-            }
+    // 2. Pinta EXATAMENTE o botão correspondente à data clicada
+    const activeBtn = document.getElementById(`day-${day}`);
+    if (activeBtn) {
+        activeBtn.className = "cursor-pointer min-w-[65px] p-3 rounded-2xl text-center transition bg-blue-900 text-white shadow-md";
+        const spans = activeBtn.querySelectorAll('span');
+        if (spans[0]) spans[0].className = "block text-xs uppercase text-white";
+        if (spans[1]) spans[1].className = "text-lg font-bold text-white";
+    }
 
             // 3. Atualiza o título topo da agenda com o dia correto
             const labelEl = document.getElementById('tituloDiaSelecionado');
