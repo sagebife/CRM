@@ -701,7 +701,7 @@
         let supabaseClient = null;
         let isConnectedToSupabase = false;
 
-        let selectedDay = 14; 
+        let selectedDay = new Date().toISOString().split('T')[0];
         let selectedCategory = 'todos';
         let confirmPromiseResolver = null;
 
@@ -1739,12 +1739,12 @@ function carregarReservasDia(dataStr) {
         // Inicializador seguro contra travamentos no browser
         function initCRM() {
     initSupabase();
+    window.selectedDay = new Date().toISOString().split('T')[0];
     gerarDiasAgenda();
-    carregarReservasDia(new Date().toISOString().split('T')[0]);
+    carregarReservasDia(window.selectedDay);
     
     carregarCategorias();
     carregarDadosNoMenuReserva();
-    // ... restante do código
 }
 
             const tempClientInput = document.getElementById('tempClient');
