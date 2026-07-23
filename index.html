@@ -11,13 +11,12 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
     // Inicialização global do Supabase
-    const supabaseUrl = 'https://xjjflsdtaruzaekadqoq.supabase.co';
-    const supabaseKey = 'sb_publishable_4w28HISw0UqCywyYMbm-8w_LVHV2ltM';
+const supabaseUrl = 'https://xjflsdtaruaekadqoq.supabase.co';
+const supabaseKey = 'sb_publishable_4w28HiSW0uQcywyYmBm-8w_LVHV2ltM';
 
-    // Isso cria a conexão que faltava
-    const clienteSupabase = supabase.createClient(supabaseUrl, supabaseKey);
-    window.supabaseClient = clienteSupabase; 
-    window.isConnectedToSupabase = true;
+// Criação do cliente de forma segura
+window.supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+window.isConnectedToSupabase = true;
 </script>
 
     <style>
