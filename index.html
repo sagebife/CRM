@@ -2215,6 +2215,7 @@ const elementoTituloHoje = document.getElementById('tituloAtividadesHoje');
 if (elementoTituloHoje) {
     elementoTituloHoje.innerText = `Próximas Atividades de Hoje (${dataFormatada})`;
 }
+        }
 // Função para carregar todas as reservas do mês inteiro na Agenda
 async function carregarMesInteiro() {
     if (!isConnectedToSupabase || !supabaseClient) return;
