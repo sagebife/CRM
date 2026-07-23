@@ -840,14 +840,19 @@
         const dia = String(hojeObj.getDate()).padStart(2, '0');
         window.selectedDay = `${ano}-${mes}-${dia}`;
         renderDashboard();
+    } else if (tabId === 'agenda') {
+        const hoje = new Date();
+        const ano = hoje.getFullYear();
+        const mes = String(hoje.getMonth() + 1).padStart(2, '0');
+        const dia = String(hoje.getDate()).padStart(2, '0');
+        selectDay(`${ano}-${mes}-${dia}`);
+    } else if (tabId === 'motoristas') {
+        renderDrivers();
+    } else if (tabId === 'financeiro') {
+        renderFinanceiro();
+    } else if (tabId === 'clientes') {
+        renderClientes();
     }
-            const hoje = new Date();
-            const ano = hoje.getFullYear();
-            const mes = String(hoje.getMonth() + 1).padStart(2, '0');
-            const dia = String(hoje.getDate()).padStart(2, '0');
-            selectDay(`${ano}-${mes}-${dia}`);
-        } else if (tabId === 'motoristas') {
-            renderDrivers();
         } else if (tabId === 'financeiro') {
             renderFinanceiro();
         } else if (tabId === 'clientes') {
