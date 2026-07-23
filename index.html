@@ -698,16 +698,12 @@
         let databaseAgenda = [...mockAgenda];
         let drivers = [...mockDrivers];
 
-        let supabaseClient = null;
-        let isConnectedToSupabase = false;
-
         let selectedDay = new Date().toISOString().split('T')[0];
         let selectedCategory = 'todos';
         let confirmPromiseResolver = null;
-        let supabaseClient = null;
+        
+        window.supabaseClient = window.supabaseClient || null;
         let isConnectedToSupabase = false;
-
-        // Tenta inicializar o Supabase usando credenciais salvas ou padrão
         function initSupabase() {
             const savedUrl = localStorage.getItem('supabase_url') || 'https://xjjflsdtaruzaekadqoq.supabase.co';
             const savedKey = localStorage.getItem('supabase_key') || 'sb_publishable_4w28HISw0UqCywyYMbm-8w_LVHV2ltM';
