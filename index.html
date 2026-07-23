@@ -704,65 +704,38 @@
         let selectedDay = new Date().toISOString().split('T')[0];
         let selectedCategory = 'todos';
         let confirmPromiseResolver = null;
+        let supabaseClient = null;
+        let isConnectedToSupabase = false;
 
+        // Tenta inicializar o Supabase usando credenciais salvas ou padrão
+        function initSupabase() {
+            const savedUrl = localStorage.getItem('supabase_url') || 'https://xjjflsdtaruzaekadqoq.supabase.co';
+            const savedKey = localStorage.getItem('supabase_key') || 'sb_publishable_4w28HISw0UqCywyYMbm-8w_LVHV2ltM';
 
-        // STREAMING_CHUNK: Implementando a conexão e tratamento de chaves do Supabase -->
-        // Tenta inicializar o Supabase usando credenciais salvas no navegador
-       function initSupabase() {
-    const savedUrl = localStorage.getItem('supabase_url') || 'https://xjjflsdtaruzaekadqoq.supabase.co';
-    const savedKey = localStorage.getItem('supabase_key');
-
-    const statusBtn = document.getElementById('db-status-btn');
-    const statusText = document.getElementById('db-status-text');
-    const dbIcon = document.getElementById('db-icon');
-
-    if (savedUrl && savedKey) {
-        try {
-            supabaseClient = supabase.createClient(savedUrl, savedKey);
-            isConnectedToSupabase = true;
-
-            if (statusBtn) {
-                statusBtn.className = "flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold transition border border-emerald-500 bg-emerald-50 text-emerald-700 shadow-sm";
-                statusText.innerText = "Supabase Conectado";
-                dbIcon.className = "fas fa-cloud text-emerald-500 animate-pulse";
-            }
-            loadRealData();
-
-            if (typeof selectDay === 'function') {
-                const hojeStr = new Date().toISOString().split('T')[0];
-                selectDay(hojeStr);
-            }
-        } catch (e) {
-            console.error("Falha ao inicializar o cliente Supabase", e);
-            switchToSimulationMode();
-        }
-    } else {
-        switchToSimulationMode();
-    }
-}
-        function switchToSimulationMode() {
-            isConnectedToSupabase = false;
-            databaseAgenda = [...mockAgenda];
-            drivers = [...mockDrivers];
-            
             const statusBtn = document.getElementById('db-status-btn');
             const statusText = document.getElementById('db-status-text');
             const dbIcon = document.getElementById('db-icon');
 
-            if (statusBtn) {
-                statusBtn.className = "flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold transition border border-dashed border-blue-400 text-blue-200 hover:border-white hover:text-white";
-                statusText.innerText = "Conectar Banco";
-                dbIcon.className = "fas fa-database text-blue-400";
+            if (savedUrl && savedKey) {
+                try {
+                    window.supabase = window.supabase || {};
+                    supabaseClient = supabase.createClient(savedUrl, savedKey);
+                    window.clienteSupabase = supabaseClient;
+                    isConnectedToSupabase = true;
+
+                    if (statusBtn) {
+                        statusBtn.className = "flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold transition border border-emerald-500 bg-emerald-50 text-emerald-700 shadow-sm";
+                        statusText.innerText = "Supabase Conectado";
+                        dbIcon.className = "fas fa-cloud text-emerald-500 animate-pulse";
+                    }
+                    loadRealData();
+                } catch (e) {
+                    console.error("Falha ao inicializar o cliente Supabase", e);
+                    switchToSimulationMode();
+                }
+            } else {
+                switchToSimulationMode();
             }
-            renderDashboard();
-            renderAgenda();
-            if (typeof selectDay === 'function') {
-        const hojeStr = new Date().toISOString().split('T')[0];
-        selectDay(hojeStr);
-    }
-            renderDrivers();
-            renderFinanceiro();
-            updateDriverDropdowns();
         }
 
         // STREAMING_CHUNK: Implementando o carregamento assíncrono das tabelas relacionais -->
@@ -2276,6 +2249,9 @@ async function carregarMesInteiro() {
 }
 // Gera os dias do carrossel dinamicamente
    
+document.addEventListener('DOMContentLoaded', function() {
+    initCRM();
+});
 </script>
 
 </div>
