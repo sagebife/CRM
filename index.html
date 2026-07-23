@@ -14,9 +14,10 @@
         const supabaseUrl = 'https://xjjflsdtaruzaekadqoq.supabase.co'; 
         const supabaseKey = 'sb_publishable_4w28HISw0UqCywyYMbm-8w_LVHV2ltM';
         
-        // Isso cria a conexão que faltava
-       const clienteSupabase = supabase.createClient(supabaseUrl, supabaseKey);
-    </script>
+     // Isso cria a conexão que faltava
+const clienteSupabase = supabase.createClient(supabaseUrl, supabaseKey);
+window.supabaseClient = clienteSupabase; // Garante que o escopo global encontre
+window.isConnectedToSupabase = true;
 
     <style>
         body {
