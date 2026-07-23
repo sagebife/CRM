@@ -1449,30 +1449,26 @@ renderDashboard();
 
         // Utilitários de Data e Visualizações Gerais
     // 1. Função de seleção de dia corrigida para tratar o formato ISO corretamente
-      function selectDay(day) {
-    console.log("Dia clicado/recebido:", day, "ID procurado:", `day-${day}`);
+     function selectDay(day) {
     selectedDay = day;
 
-    // 1. Encontra e reseta TODOS os botões do carrossel pela estrutura de classes deles
-    document.querySelectorAll('.cursor-pointer').forEach(btn => {
+    // Atualiza o visual de todos os botões do carrossel corretamente
+    document.querySelectorAll('#containerDiasAgenda > div').forEach(btn => {
+        const isSelected = btn.getAttribute('data-date') === day;
         const spans = btn.querySelectorAll('span');
-        if (spans.length >= 2) {
-            btn.className = "cursor-pointer min-w-[65px] p-3 rounded-2xl text-center transition bg-white hover:bg-gray-100";
-            spans[0].className = "block text-xs uppercase text-gray-500";
-            spans[1].className = "text-lg font-bold text-gray-800";
+        
+        if (isSelected) {
+            btn.className = "day-btn cursor-pointer min-w-[65px] p-3 rounded-xl text-center transition bg-blue-900 text-white shadow-md border border-blue-900";
+            if (spans[0]) spans[0].className = "block text-xs uppercase text-blue-200";
+            if (spans[1]) spans[1].className = "text-lg font-bold text-white";
+        } else {
+            btn.className = "day-btn cursor-pointer min-w-[65px] p-3 rounded-xl text-center transition bg-white hover:bg-gray-100 text-gray-700 border border-gray-100";
+            if (spans[0]) spans[0].className = "block text-xs uppercase text-gray-500";
+            if (spans[1]) spans[1].className = "text-lg font-bold text-gray-800";
         }
     });
 
-    // 2. Pinta EXATAMENTE o botão da data clicada
-    const activeBtn = document.getElementById(`day-${day}`);
-    if (activeBtn) {
-        activeBtn.className = "cursor-pointer min-w-[65px] p-3 rounded-2xl text-center transition bg-blue-900 text-white shadow-md";
-        const spans = activeBtn.querySelectorAll('span');
-        if (spans[0]) spans[0].className = "block text-xs uppercase text-white";
-        if (spans[1]) spans[1].className = "text-lg font-bold text-white";
-    }
-
-    // 3. Atualiza o título topo da agenda com o dia correto
+    // Atualiza o título topo da agenda com o dia correto
     const labelEl = document.getElementById('tituloDiaSelecionado');
     if (labelEl) {
         const [ano, mes, d] = String(selectedDay).split('-');
@@ -1485,13 +1481,8 @@ renderDashboard();
         }
     }
 
-    // 4. Aciona a renderização dos dados
-    if (typeof renderAgenda === 'function') {
-        renderAgenda();
-    }
-    if (typeof renderDashboard === 'function') {
-        renderDashboard();
-    }
+    if (typeof renderAgenda === 'function') renderAgenda();
+    if (typeof renderDashboard === 'function') renderDashboard();
 }
 function filterCategory(category) {
             selectedCategory = category;
@@ -1636,34 +1627,34 @@ function filterCategory(category) {
             }
         }
 // 2. Geração correta do carrossel injetando o atributo data-date indispensável
-        function gerarDiasAgenda() {
-            const containerDias = document.getElementById('containerDiasAgenda');
-            if (!containerDias) return;
-            containerDias.innerHTML = '';
+      function gerarDiasAgenda() {
+    const containerDias = document.getElementById('containerDiasAgenda');
+    if (!containerDias) return;
+    containerDias.innerHTML = '';
 
-            const hoje = new Date();
+    const hoje = new Date();
 
-            for (let i = -3; i <= 3; i++) {
-                const d = new Date();
-                d.setDate(hoje.getDate() + i);
+    for (let i = -3; i <= 3; i++) {
+        const d = new Date();
+        d.setDate(hoje.getDate() + i);
 
-                const anoLoc = d.getFullYear();
-                const mesLoc = String(d.getMonth() + 1).padStart(2, '0');
-                const diaLoc = String(d.getDate()).padStart(2, '0');
-                const diaStr = `${anoLoc}-${mesLoc}-${diaLoc}`;
-                
-                const diaNumero = d.getDate();
-                const diaSemana = d.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '');
-                const isSelected = diaStr === selectedDay;
+        const anoLoc = d.getFullYear();
+        const mesLoc = String(d.getMonth() + 1).padStart(2, '0');
+        const diaLoc = String(d.getDate()).padStart(2, '0');
+        const diaStr = `${anoLoc}-${mesLoc}-${diaLoc}`;
+        
+        const diaNumero = d.getDate();
+        const diaSemana = d.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '');
+        const isSelected = diaStr === selectedDay;
 
-                containerDias.innerHTML += `
-                <div data-date="${diaStr}" onclick="selectDay('${diaStr}')" class="day-btn cursor-pointer min-w-[65px] p-3 rounded-xl text-center transition ${isSelected ? 'border border-blue-600 bg-blue-600 text-white shadow-md' : 'bg-white hover:bg-gray-100 text-gray-700 border border-gray-100'}">
-                    <span class="block text-xs uppercase ${isSelected ? 'text-white' : ''}">${diaSemana}</span>
-                    <span class="text-lg font-bold ${isSelected ? 'text-white' : 'text-gray-800'}">${diaNumero}</span>
-                </div>
-                `;
-            }
-        }
+        containerDias.innerHTML += `
+        <div data-date="${diaStr}" onclick="selectDay('${diaStr}')" class="day-btn cursor-pointer min-w-[65px] p-3 rounded-xl text-center transition ${isSelected ? 'bg-blue-900 text-white shadow-md border border-blue-900' : 'bg-white hover:bg-gray-100 text-gray-700 border border-gray-100'}">
+            <span class="block text-xs uppercase ${isSelected ? 'text-blue-200' : 'text-gray-500'}">${diaSemana}</span>
+            <span class="text-lg font-bold ${isSelected ? 'text-white' : 'text-gray-800'}">${diaNumero}</span>
+        </div>
+        `;
+    }
+}
 function carregarReservasDia(dataStr) {
     window.selectedDay = dataStr;
     
