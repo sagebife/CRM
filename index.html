@@ -1877,17 +1877,31 @@ async function deletarServico(id) {
 }
 // Carrega as categorias ao abrir o modal
 async function carregarMenuCategorias() {
+    // Usa supabaseClient ou clienteSupabase, garantindo que não quebre se estiver nulo
+    const db = typeof supabaseClient !== 'undefined' ? supabaseClient : (typeof clienteSupabase !== 'undefined' ? clienteSupabase : null);
+    if (!db) return;
+
     const select = document.getElementById('catSelectReserva');
-    const { data: categorias } = await supabaseClient.from('categorias_servicos').select('*');
-    
-    select.innerHTML = '<option value="">Selecione uma categoria...</option>';
-    if (categorias) {
-        categorias.forEach(cat => {
-            select.innerHTML += `<option value="${cat.nome}">${cat.nome}</option>`;
-        });
+    if (!select) return;
+
+    try {
+        const { data: categorias, error } = await db.from('categorias_servicos').select('*');
+        
+        if (error) {
+            console.error("Erro ao carregar categorias:", error);
+            return;
+        }
+        
+        select.innerHTML = '<option value="">Selecione uma categoria...</option>';
+        if (categorias) {
+            categorias.forEach(cat => {
+                select.innerHTML += `<option value="${cat.nome}">${cat.nome}</option>`;
+            });
+        }
+    } catch (err) {
+        console.error("Erro na conexão ao carregar categorias:", err);
     }
 }
-
 // Filtra os serviços quando você escolhe uma categoria
 async function filtrarServicosPorCategoria() {
     const catEscolhida = document.getElementById('catSelectReserva').value;
