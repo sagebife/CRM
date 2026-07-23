@@ -11,8 +11,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
     // Inicialização global do Supabase
-const supabaseUrl = 'https://xjjflsdtaruaekadqoq.supabase.co';
-const supabaseKey = 'sb_publishable_4w28HiSW0uQcywyYmBm-8w_LVHV2ltM';
+const supabaseUrl = 'https://xjjflsdtaruzaekadqoq.supabase.co';
+const supabaseKey = 'sb_publishable_4w28HISw0UqCywyYMbm-8w_LVHV2ltM';
 
 // Criação do cliente de forma segura
 window.supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
@@ -705,36 +705,44 @@ window.isConnectedToSupabase = true;
         
         window.supabaseClient = window.supabaseClient || null;
         let isConnectedToSupabase = false;
-        function initSupabase() {
-            const savedUrl = localStorage.getItem('supabase_url') || 'https://xjjflsdtaruzaekadqoq.supabase.co';
-            const savedKey = localStorage.getItem('supabase_key') || 'sb_publishable_4w28HISw0UqCywyYMbm-8w_LVHV2ltM';
+        async function initSupabase() {
+    const savedUrl = localStorage.getItem('supabase_url') || 'https://xjjflsdtaruzaekadqoq.supabase.co';
+    const savedKey = localStorage.getItem('supabase_key') || 'sb_publishable_4w28HiSW0UqCywyYMbm-8w_LVHV2ltM';
 
-            const statusBtn = document.getElementById('db-status-btn');
-            const statusText = document.getElementById('db-status-text');
-            const dbIcon = document.getElementById('db-icon');
+    const statusBtn = document.getElementById('db-status-btn');
+    const statusText = document.getElementById('db-status-text');
+    const dbIcon = document.getElementById('db-icon');
 
-            if (savedUrl && savedKey) {
-                try {
-                    window.supabase = window.supabase || {};
-                    supabaseClient = supabase.createClient(savedUrl, savedKey);
-                    window.clienteSupabase = supabaseClient;
-                    isConnectedToSupabase = true;
+    if (savedUrl && savedKey) {
+        try {
+            window.supabaseClient = supabase.createClient(savedUrl, savedKey);
+            
+            const { error } = await window.supabaseClient
+                .from('motoristas')
+                .select('*')
+                .limit(1);
 
-                    if (statusBtn) {
-                        statusBtn.className = "flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold transition border border-emerald-500 bg-emerald-50 text-emerald-700 shadow-sm";
-                        statusText.innerText = "Supabase Conectado";
-                        dbIcon.className = "fas fa-cloud text-emerald-500 animate-pulse";
-                    }
-                    loadRealData();
-                } catch (e) {
-                    console.error("Falha ao inicializar o cliente Supabase", e);
-                    switchToSimulationMode();
-                }
-            } else {
-                switchToSimulationMode();
+            if (error) {
+                throw error;
             }
-        }
 
+            window.isConnectedToSupabase = true;
+
+            if (statusBtn) {
+                statusBtn.className = "flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold transition border border-emerald-500/30 bg-emerald-500/10 text-emerald-600";
+                statusText.innerText = "Supabase Conectado";
+                dbIcon.className = "fas fa-cloud text-emerald-500 animate-pulse";
+            }
+            loadRealData();
+        } catch (e) {
+            console.error("Falha ao inicializar ou conectar ao cliente Supabase", e);
+            window.isConnectedToSupabase = false;
+            switchToSimulationMode();
+        }
+    } else {
+        switchToSimulationMode();
+    }
+}
         // STREAMING_CHUNK: Implementando o carregamento assíncrono das tabelas relacionais -->
         // Carrega dados diretamente do Supabase PostgreSQL
         async function loadRealData() {
