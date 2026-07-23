@@ -833,9 +833,14 @@
             if (mNavMoto) mNavMoto.className = tabId === 'motoristas' ? "text-blue-900 py-1 flex flex-col items-center" : "text-gray-400 py-1 flex flex-col items-center";
             if (mNavFin) mNavFin.className = tabId === 'financeiro' ? "text-blue-900 py-1 flex flex-col items-center" : "text-gray-400 py-1 flex flex-col items-center";
 
-           if (tabId === 'dashboard') {
-            renderDashboard();
-        } else if (tabId === 'agenda') {
+         if (tabId === 'dashboard') {
+        const hojeObj = new Date();
+        const ano = hojeObj.getFullYear();
+        const mes = String(hojeObj.getMonth() + 1).padStart(2, '0');
+        const dia = String(hojeObj.getDate()).padStart(2, '0');
+        window.selectedDay = `${ano}-${mes}-${dia}`;
+        renderDashboard();
+    }
             const hoje = new Date();
             const ano = hoje.getFullYear();
             const mes = String(hoje.getMonth() + 1).padStart(2, '0');
