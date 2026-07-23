@@ -1729,68 +1729,26 @@ function carregarReservasDia(dataStr) {
 
         // STREAMING_CHUNK: Inicializador asincrônico definitivo de toda a aplicação -->
         // Inicializador seguro contra travamentos no browser
-        function initCRM() {
+     function initCRM() {
     initSupabase();
-    window.selectedDay = new Date().toISOString().split('T')[0];
+    
+    // Define explicitamente a data de hoje baseada no relógio real do computador/navegador (Formato AAAA-MM-DD)
+    const hojeObj = new Date();
+    const ano = hojeObj.getFullYear();
+    const mes = String(hojeObj.getMonth() + 1).padStart(2, '0');
+    const dia = String(hojeObj.getDate()).padStart(2, '0');
+    
+    window.selectedDay = `${ano}-${mes}-${dia}`;
+
     gerarDiasAgenda();
     carregarReservasDia(window.selectedDay);
     
     carregarCategorias();
     carregarDadosNoMenuReserva();
-}
-
-            const tempClientInput = document.getElementById('tempClient');
-            if(tempClientInput) {
-                tempClientInput.addEventListener('input', updateTemplatePreview);
-            }
-
-        if (document.readyState === 'complete' || document.readyState === 'interactive') {
-            initCRM();
-        } else {
-            window.addEventListener('DOMContentLoaded', initCRM);
-        }
-async function carregarCategorias() {
-    const { data: categorias, error } = await supabaseClient
-        .from('categorias_servicos')
-        .select('*');
-
-    if (error) { console.error(error); return; }
-
-    const catalog = document.getElementById('catalogList');
-    catalog.innerHTML = ''; 
-
-    // --- LINHA 1: Prepare o menu antes de começar ---
-    const selectMenu = document.getElementById('catSelect');
-    selectMenu.innerHTML = '<option>Selecione uma categoria...</option>';
-
-    for (let cat of categorias) {
-        
-        // --- LINHA 2: Adicione a categoria no menu ---
-        selectMenu.innerHTML += `<option value="${cat.nome}">${cat.nome}</option>`;
-
-        catalog.innerHTML += `
-            <div class="p-4 border rounded-xl mb-4">
-                <h3 class="font-bold text-blue-900 border-b pb-2 mb-2">${cat.nome}</h3>
-                <div id="lista_${cat.nome}"></div> 
-            </div>`;
-
-        const { data: servicos } = await supabaseClient
-            .from('servicos')
-            .select('*')
-            .eq('categoria', cat.nome); 
-
-        const container = document.getElementById(`lista_${cat.nome}`);
-        if (servicos) {
-            servicos.forEach(s => {
-            container.innerHTML += `
-                <div class="flex justify-between items-center py-1 group">
-                    <span class="text-sm">🔹 ${s.nome} - R$ ${s.preco}</span>
-                    <button onclick="deletarServico('${s.id}')" class="text-gray-300 hover:text-red-500 transition">
-                        <i class="fas fa-trash-alt text-xs"></i>
-                    </button>
-                </div>`;
-        });
-        }
+    
+    // Força a renderização imediata do Dashboard com base na data de hoje
+    if (typeof renderDashboard === 'function') {
+        renderDashboard();
     }
 }
 async function addCategoria() {
