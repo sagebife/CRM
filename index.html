@@ -2244,12 +2244,12 @@ async function carregarMesInteiro() {
             console.log("Dados do mês carregados:", data);
             showToast("Agenda do mês carregada com sucesso!");
         }
-    } catch (err) {
+   } catch (err) {
         console.error("Erro ao carregar mês:", err);
     }
-}
+} // <--- Esta chave fecha a função carregarMesInteiro()
+
 // Gera os dias do carrossel dinamicamente
-   
 document.addEventListener('DOMContentLoaded', function() {
     initCRM();
 });
