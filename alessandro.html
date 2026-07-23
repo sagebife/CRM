@@ -10,16 +10,50 @@
     
     <!-- BIBLIOTECA DO SUPABASE OFICIAL -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
     <script>
-        // Inicialização global unificada e blindada do Supabase
-        const supabaseUrl = 'https://xjjflsdtaruzaekadqoq.supabase.co';
-        const supabaseKey = 'sb_publishable_4w28HiSW0UqCywyYMbm-8w_LVHV2ltM';
+    const supabaseUrl = 'https://xjjflsdtaruzaekadqoq.supabase.co';
+    const supabaseKey = 'sb_publishable_4w28HiSW0UqCywyYMbm-8w_LVHV2ltM';
 
-        window.supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
-        window.clienteSupabase = window.supabaseClient;
-        window.isConnectedToSupabase = true;
-    </script>
+    window.supabaseClient = window.supabaseClient || null;
+    window.clienteSupabase = window.supabaseClient;
+    let isConnectedToSupabase = false;
+
+    async function initSupabase() {
+        const statusBtn = document.getElementById('db-status-btn');
+        const statusText = document.getElementById('db-status-text');
+        const dbIcon = document.getElementById('db-icon');
+
+        try {
+            window.supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+            window.clienteSupabase = window.supabaseClient;
+            
+            const { error } = await window.supabaseClient
+                .from('motoristas')
+                .select('*')
+                .limit(1);
+
+            if (error) throw error;
+
+            window.isConnectedToSupabase = true;
+
+            if (statusBtn) {
+                statusBtn.className = "flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold transition border border-emerald-500/30 bg-emerald-500/10 text-emerald-600";
+                statusText.innerText = "Supabase Conectado";
+                dbIcon.className = "fas fa-cloud text-emerald-500 animate-pulse";
+            }
+            
+            // Dispara o carregamento dos dados reais imediatamente após conectar
+            if (typeof loadRealData === 'function') loadRealData();
+            if (typeof renderClientes === 'function') renderClientes();
+        } catch (e) {
+            console.error("Falha ao conectar ao Supabase", e);
+            window.isConnectedToSupabase = false;
+        }
+    }
+
+    // Executa a conexão assim que o navegador lê o script
+    initSupabase();
+</script>
 
     <style>
         body {
@@ -49,10 +83,12 @@
                 </span>
             </div>
 
+            <!-- Botão de Status do Banco de Dados (Supabase) -->
             <button onclick="openDbSettingsModal()" class="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold transition border border-dashed border-blue-400 text-blue-200 hover:border-white hover:text-white" id="db-status-btn">
                 <i class="fas fa-database" id="db-icon"></i> <span id="db-status-text">Supabase Conectado</span>
             </button>
 
+            <!-- Menu Desktop -->
             <div class="hidden md:flex space-x-6">
                 <button onclick="switchTab('dashboard')" id="nav-dash" class="text-white font-bold border-b-2 border-white pb-1 transition">Dashboard</button>
                 <button onclick="switchTab('agenda')" id="nav-agenda" class="text-blue-200 hover:text-white font-semibold transition">Agenda</button>
@@ -61,7 +97,6 @@
                 <button onclick="switchTab('financeiro')" id="nav-fin" class="text-blue-200 hover:text-white font-semibold transition">Financeiro</button>
                 <button onclick="switchTab('clientes')" id="nav-clientes" class="text-blue-200 hover:text-white font-semibold transition">Clientes</button>
             </div>
-
             <div class="flex items-center space-x-2">
                 <button onclick="openQuickAddModal()" class="bg-emerald-500 hover:bg-emerald-600 text-white px-3.5 py-1.5 rounded-xl font-bold text-sm flex items-center gap-1.5 transition">
                     <i class="fas fa-plus"></i> <span class="hidden sm:inline">Nova Reserva</span>
@@ -70,13 +105,14 @@
         </div>
     </header>
 
-    <!-- CONTAINER PRINCIPAL -->
+    <!-- CONTAINER DAS TELAS OPERACIONAIS -->
     <main class="flex-1 max-w-7xl w-full mx-auto p-4 lg:p-6">
 
         <!-- VIEW: DASHBOARD -->
         <div id="view-dashboard" class="view-section">
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 
+                <!-- COLUNA ESQUERDA: ALERTAS & MENSAGENS RÁPIDAS -->
                 <section class="lg:col-span-1 space-y-6">
                     <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
                         <div class="flex items-center justify-between mb-4">
@@ -111,6 +147,7 @@
                         </div>
                     </div>
 
+                    <!-- Disparo de Mensagens Rápidas -->
                     <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
                         <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4 flex items-center gap-1.5">
                             <i class="fas fa-comment-alt-dots text-blue-900"></i> Central de Mensagens Rápidas
@@ -132,7 +169,10 @@
                     </div>
                 </section>
 
+                <!-- COLUNA CENTRAL E DIREITA: MÉTRICAS & OPERAÇÃO -->
                 <section class="lg:col-span-2 space-y-6">
+                    
+                    <!-- Cards de Indicadores -->
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                         <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
                             <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider leading-none mb-1">Chegadas Hoje</p>
@@ -156,16 +196,20 @@
                         </div>
                     </div>
 
+                    <!-- Rastreador de Voo Rápido -->
                     <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
                         <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4 flex items-center gap-1.5">
                             <i class="fas fa-radar text-blue-900 animate-pulse"></i> Painel de Rastreamento de Voos (Ezeiza / AEP)
                         </h3>
+                        
                         <div class="flex gap-2 mb-4">
                             <input type="text" id="flightInput" placeholder="Ex: TK15 ou G3 7680" class="flex-1 p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-900 focus:bg-white transition uppercase">
                             <button onclick="simulateFlightSearch()" class="px-5 bg-blue-900 hover:bg-blue-800 text-white rounded-xl text-sm font-bold transition">
                                 Buscar Voo
                             </button>
                         </div>
+
+                        <!-- Resultado Simulado -->
                         <div id="flightResult" class="hidden p-4 rounded-xl border border-blue-100 bg-blue-50/20 space-y-2">
                             <div class="flex justify-between items-center">
                                 <span class="font-extrabold text-blue-900 text-sm" id="resFlightCode">TK15</span>
@@ -180,6 +224,7 @@
                         </div>
                     </div>
 
+                    <!-- Visão Geral Operacional (Resumo do Dia) -->
                     <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 space-y-4">
                         <div class="flex items-center justify-between border-b border-gray-100 pb-3">
                             <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
@@ -187,8 +232,12 @@
                             </h3>
                             <button onclick="switchTab('agenda')" class="text-xs text-blue-900 font-bold hover:underline">Ver agenda completa</button>
                         </div>
-                        <div class="space-y-3" id="dashActivitiesContainer"></div>
+
+                        <div class="space-y-3" id="dashActivitiesContainer">
+                            <!-- Gerado dinamicamente -->
+                        </div>
                     </div>
+
                 </section>
             </div>
         </div>
@@ -200,9 +249,12 @@
                     <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Selecione o Dia</span>
                     <span class="text-sm font-semibold text-blue-900" id="labelMesAnoAgenda">Julho 2026</span>
                 </div>
+                
+                <!-- Carrossel de Dias Horizontal Dinâmico -->
                 <div id="containerDiasAgenda" class="flex gap-2 overflow-x-auto pb-2 justify-between"></div>
             </div>
 
+            <!-- Filtros Rápidos -->
             <div class="flex gap-2">
                 <button onclick="filterCategory('todos')" id="btn-filter-todos" class="filter-btn px-4 py-2 rounded-xl bg-gray-900 text-white text-xs font-bold transition shadow-sm">
                     Todos (<span id="count-todos">0</span>)
@@ -215,13 +267,15 @@
                 </button>
             </div>
 
+            <!-- Linha do Tempo -->
             <div class="space-y-4">
                 <div class="flex items-center justify-between">
-                    <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider" id="selected-day-label">Agenda</h3>
+                    <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider" id="tituloDiaSelecionado">Agenda</h3>
                     <span class="text-xs text-emerald-600 font-bold bg-emerald-50 px-2 py-1 rounded-full flex items-center gap-1">
                         <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span> Atualizado agora
                     </span>
                 </div>
+
                 <div id="timelineContainer" class="space-y-4 relative border-l-2 border-gray-200 pl-4 ml-3"></div>
             </div>
         </div>
@@ -240,22 +294,22 @@
                     <form id="driverForm" onsubmit="addDriver(event)" class="space-y-4">
                         <div>
                             <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Nome Completo</label>
-                            <input type="text" id="driverName" required placeholder="Ex: Paulo Souza" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-900 text-sm">
+                            <input type="text" id="driverName" required placeholder="Ex: Paulo Souza" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-sm">
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-xs font-bold text-gray-500 uppercase mb-1">WhatsApp</label>
-                                <input type="tel" id="driverPhone" required placeholder="Ex: 55119999999" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-900 text-sm">
+                                <input type="tel" id="driverPhone" required placeholder="Ex: 55119999999" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-sm">
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Veículo / Modelo</label>
-                                <input type="text" id="driverVehicle" required placeholder="Ex: Spin" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-900 text-sm">
+                                <input type="text" id="driverVehicle" required placeholder="Ex: Chevrolet Spin" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-sm">
                             </div>
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Placa</label>
-                                <input type="text" id="driverPlate" required placeholder="Ex: PNG-8D43" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl uppercase text-sm">
+                                <input type="text" id="driverPlate" required placeholder="Ex: PNG-8D43" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-sm uppercase">
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Capacidade (Pax)</label>
@@ -278,10 +332,10 @@
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Chave Pix / Alias</label>
-                            <input type="text" id="driverPix" required placeholder="Alias ou chave Pix" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-sm">
+                            <input type="text" id="driverPix" required placeholder="Alias bancário ou chave Pix" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-sm">
                         </div>
-                        <button type="submit" class="w-full py-4 bg-blue-900 text-white font-bold rounded-xl hover:bg-blue-800 transition shadow-md flex items-center justify-center gap-2 text-sm mt-2">
-                            <i class="fas fa-plus-circle"></i> Cadastrar e Ativar
+                        <button type="submit" class="w-full py-4 bg-blue-900 text-white font-bold rounded-xl hover:bg-blue-800 transition shadow-md text-sm mt-2">
+                            Cadastrar e Ativar
                         </button>
                     </form>
                 </section>
@@ -289,18 +343,12 @@
                 <section class="lg:col-span-2 space-y-4">
                     <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-col md:flex-row gap-3 justify-between items-center">
                         <div class="relative w-full md:w-72">
-                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
-                                <i class="fas fa-search"></i>
-                            </span>
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400"><i class="fas fa-search"></i></span>
                             <input type="text" id="searchInput" oninput="filterDrivers()" placeholder="Buscar motorista ou veículo..." class="w-full pl-9 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm">
                         </div>
                         <div class="flex gap-2 w-full md:w-auto">
-                            <span class="text-xs bg-emerald-50 text-emerald-700 px-3 py-2 rounded-lg font-bold flex items-center gap-1.5 justify-center flex-1">
-                                <i class="fas fa-users"></i> <span id="activeCount">0</span> Ativos
-                            </span>
-                            <span class="text-xs bg-blue-50 text-blue-700 px-3 py-2 rounded-lg font-bold flex items-center gap-1.5 justify-center flex-1">
-                                <i class="fas fa-car"></i> <span id="totalTripsCount">0</span> Viagens
-                            </span>
+                            <span class="text-xs bg-emerald-50 text-emerald-700 px-3 py-2 rounded-lg font-bold flex items-center gap-1.5 w-full md:w-auto justify-center"><i class="fas fa-users"></i> <span id="activeCount">0</span> Ativos</span>
+                            <span class="text-xs bg-blue-50 text-blue-700 px-3 py-2 rounded-lg font-bold flex items-center gap-1.5 w-full md:w-auto justify-center"><i class="fas fa-car"></i> <span id="totalTripsCount">0</span> Viagens total</span>
                         </div>
                     </div>
                     <div id="driversList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
@@ -320,10 +368,8 @@
                     </div>
                     <div class="p-4 bg-gray-50 rounded-xl border">
                         <h3 class="font-bold text-sm mb-3">2. Adicionar Rota e Preço</h3>
-                        <select id="catSelect" class="w-full p-2 rounded-lg border mb-2">
-                            <option>Selecione uma categoria...</option>
-                        </select>
-                        <input type="text" id="nomeItemInput" placeholder="Rota (ex: Ezeiza x Hotel)" class="w-full p-2 rounded-lg border mb-2">
+                        <select id="catSelect" class="w-full p-2 rounded-lg border mb-2"><option>Selecione uma categoria...</option></select>
+                        <input type="text" id="nomeItemInput" placeholder="Rota (ex: Centro x Aeroparque)" class="w-full p-2 rounded-lg border mb-2">
                         <input type="number" id="precoInput" placeholder="Valor ($)" class="w-full p-2 rounded-lg border mb-2">
                         <button onclick="addItem()" class="w-full py-2 bg-emerald-600 text-white rounded-lg text-sm font-bold">Adicionar Serviço</button>
                     </div>
@@ -338,36 +384,32 @@
                 <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
                     <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider leading-none mb-1">Faturamento Bruto</p>
                     <p class="text-2xl font-black text-blue-900" id="fin-faturamento">$ 0</p>
-                    <span class="text-[10px] text-emerald-600 font-semibold"><i class="fas fa-arrow-trend-up"></i> Entradas Clientes</span>
                 </div>
                 <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
                     <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider leading-none mb-1">Repasses Motoristas</p>
                     <p class="text-2xl font-black text-red-600" id="fin-repasses">$ 0</p>
-                    <span class="text-[10px] text-red-600 font-semibold"><i class="fas fa-arrow-trend-down"></i> Custos do Serviço</span>
                 </div>
                 <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
                     <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider leading-none mb-1">Lucro Operacional</p>
                     <p class="text-2xl font-black text-emerald-600" id="fin-lucro">$ 0</p>
-                    <span class="text-[10px] text-gray-400 font-medium">Margem Líquida</span>
                 </div>
                 <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
                     <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider leading-none mb-1">Pendente Cobrança</p>
                     <p class="text-2xl font-black text-amber-600" id="fin-pendente">$ 0</p>
-                    <span class="text-[10px] text-amber-600 font-semibold">A Receber</span>
                 </div>
             </div>
 
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
                     <h3 class="font-bold text-sm text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
-                        <i class="fas fa-cash-register text-blue-900"></i> Fluxo de Caixa Operacional (Histórico Geral)
+                        <i class="fas fa-cash-register text-blue-900"></i> Fluxo de Caixa Operacional
                     </h3>
                     <span class="text-xs bg-blue-50 text-blue-700 px-2.5 py-1 rounded-full font-bold">Consolidado em USD</span>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead>
-                            <tr class="border-b border-gray-150 text-[10px] font-bold text-gray-400 uppercase bg-gray-50">
+                            <tr class="border-b text-[10px] font-bold text-gray-400 uppercase bg-gray-50">
                                 <th class="p-4">Cliente / Serviço</th>
                                 <th class="p-4">Motorista Escalado</th>
                                 <th class="p-4 text-right">Valor cobrado</th>
@@ -377,7 +419,7 @@
                                 <th class="p-4 text-center">Repasse Motorista</th>
                             </tr>
                         </thead>
-                        <tbody id="financeTableBody" class="divide-y divide-gray-100 text-xs text-gray-700"></tbody>
+                        <tbody id="financeTableBody" class="divide-y text-xs text-gray-700"></tbody>
                     </table>
                 </div>
             </div>
@@ -389,10 +431,8 @@
                 <h2 class="text-xl font-bold text-blue-900">Banco de Inteligência de Clientes</h2>
                 
                 <div class="relative">
-                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
-                        <i class="fas fa-search"></i>
-                    </span>
-                    <input type="text" id="searchClientInput" oninput="filtrarClientesTempoReal()" placeholder="Pesquisar cliente por nome..." class="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-900 text-sm">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400"><i class="fas fa-search"></i></span>
+                    <input type="text" id="searchClientInput" oninput="filtrarClientesTempoReal()" placeholder="Pesquisar cliente por nome..." class="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-900">
                 </div>
 
                 <div id="clientesList" class="flex flex-col gap-3"></div>
@@ -404,143 +444,124 @@
     <!-- MODAIS GLOBAIS -->
     <div id="dbSettingsModal" class="fixed inset-0 bg-gray-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition duration-200">
         <div class="bg-white w-full max-w-md rounded-2xl p-6 shadow-2xl space-y-4">
-            <div class="flex justify-between items-center border-b border-gray-100 pb-3">
-                <h3 class="font-bold text-gray-900 text-lg flex items-center gap-2">
-                    <i class="fas fa-plug text-blue-900"></i> Conexão Supabase
-                </h3>
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="font-bold text-gray-900 text-lg flex items-center gap-2"><i class="fas fa-plug text-blue-900"></i> Conexão Supabase</h3>
                 <button onclick="closeDbSettingsModal()" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times text-lg"></i></button>
             </div>
             <div class="space-y-3">
-                <p class="text-xs text-gray-500">Credenciais ativas do Supabase.</p>
                 <div>
                     <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Project URL</label>
-                    <input type="text" id="dbUrlInput" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-mono">
+                    <input type="text" id="dbUrlInput" class="w-full p-2.5 bg-gray-50 border rounded-lg text-xs font-mono">
                 </div>
                 <div>
-                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">API Anon Key</label>
-                    <textarea id="dbKeyInput" rows="3" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-mono"></textarea>
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">API Anon / Public Key</label>
+                    <textarea id="dbKeyInput" rows="3" class="w-full p-2.5 bg-gray-50 border rounded-lg text-xs font-mono"></textarea>
                 </div>
             </div>
             <div class="grid grid-cols-2 gap-3 pt-2">
-                <button onclick="clearDbConfig()" class="py-3 bg-gray-100 text-gray-700 font-bold text-xs rounded-xl hover:bg-gray-200 transition">Desconectar</button>
-                <button onclick="saveDbConfig()" class="py-3 bg-blue-900 text-white font-bold text-xs rounded-xl hover:bg-blue-800 transition">Salvar e Conectar</button>
+                <button onclick="clearDbConfig()" class="py-3 bg-gray-100 text-gray-700 font-bold text-xs rounded-xl">Desconectar</button>
+                <button onclick="saveDbConfig()" class="py-3 bg-blue-900 text-white font-bold text-xs rounded-xl">Salvar e Conectar</button>
             </div>
         </div>
     </div>
 
+    <!-- Modal: Mensagens WhatsApp -->
     <div id="messageModal" class="fixed inset-0 bg-gray-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition duration-200">
         <div class="bg-white w-full max-w-md rounded-2xl p-6 shadow-2xl space-y-4">
-            <div class="flex justify-between items-center border-b border-gray-100 pb-3">
+            <div class="flex justify-between items-center border-b pb-3">
                 <h3 class="font-bold text-gray-900 text-base" id="modalTemplateTitle">Template de Mensagem</h3>
-                <button onclick="closeMessageTemplate()" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times text-lg"></i></button>
+                <button onclick="closeMessageTemplate()" class="text-gray-400"><i class="fas fa-times"></i></button>
             </div>
             <div class="space-y-3">
-                <div>
-                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">WhatsApp</label>
-                    <input type="text" id="tempWhatsApp" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold">
-                </div>
-                <div>
-                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Cliente</label>
-                    <input type="text" id="tempClient" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold">
-                </div>
-                <div>
-                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Mensagem</label>
-                    <textarea id="tempBody" rows="6" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg text-xs font-mono text-gray-750"></textarea>
-                </div>
+                <input type="text" id="tempWhatsApp" placeholder="WhatsApp" class="w-full p-2.5 bg-gray-50 border rounded-lg text-xs font-bold">
+                <input type="text" id="tempClient" placeholder="Nome" class="w-full p-2.5 bg-gray-50 border rounded-lg text-xs font-bold">
+                <textarea id="tempBody" rows="6" class="w-full p-3 bg-gray-50 border rounded-lg text-xs font-mono"></textarea>
             </div>
-            <button onclick="triggerWhatsAppRedirect()" class="w-full py-3 bg-emerald-500 text-white font-bold rounded-xl hover:bg-emerald-600 transition shadow-md flex items-center justify-center gap-2 text-sm">
+            <button onclick="triggerWhatsAppRedirect()" class="w-full py-3 bg-emerald-500 text-white font-bold rounded-xl text-sm flex items-center justify-center gap-2">
                 <i class="fab fa-whatsapp"></i> Abrir WhatsApp
             </button>
         </div>
     </div>
 
-    <!-- Modal: Adicionar Reserva Rápido -->
+    <!-- Modal: Agendamento Rápido -->
     <div id="quickModal" class="fixed inset-0 bg-gray-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition duration-200">
         <div class="bg-white w-full max-w-md rounded-2xl p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
-            <div class="flex justify-between items-center border-b border-gray-100 pb-3">
+            <div class="flex justify-between items-center border-b pb-3">
                 <h3 class="font-bold text-gray-900 text-lg">Agendamento Rápido</h3>
-                <button onclick="closeQuickAddModal()" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times text-lg"></i></button>
+                <button onclick="closeQuickAddModal()" class="text-gray-400"><i class="fas fa-times"></i></button>
             </div>
             
             <form onsubmit="saveQuickReserva(event)" class="space-y-4">
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Cliente</label>
-                        <input type="text" id="modalClient" required placeholder="Nome do cliente" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm">
+                        <input type="text" id="modalClient" required placeholder="Ex: Lucas Ramos" class="w-full p-2.5 bg-gray-50 border rounded-lg text-sm">
                     </div>
                     <div>
                         <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">WhatsApp</label>
-                        <input type="tel" id="modalPhone" required placeholder="5511..." class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm">
+                        <input type="tel" id="modalPhone" required placeholder="Ex: 5511..." class="w-full p-2.5 bg-gray-50 border rounded-lg text-sm">
                     </div>
                 </div>
-
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Data</label>
-                        <input type="date" id="modalDate" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm">
+                        <input type="date" id="modalDate" class="w-full p-2.5 bg-gray-50 border rounded-lg text-sm">
                     </div>
                     <div>
                         <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Hora</label>
-                        <input type="time" id="modalTime" required value="12:00" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm">
+                        <input type="time" id="modalTime" required value="12:00" class="w-full p-2.5 bg-gray-50 border rounded-lg text-sm">
                     </div>
                 </div>
-
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Categoria</label>
-                        <select id="catSelectReserva" onchange="filtrarServicosPorCategoria()" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm">
+                        <select id="catSelectReserva" onchange="filtrarServicosPorCategoria()" class="w-full p-2.5 bg-gray-50 border rounded-lg text-sm">
                             <option value="">Selecione...</option>
                         </select>
                     </div>
                     <div>
                         <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Serviço</label>
-                        <select id="servicoSelectReserva" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm">
+                        <select id="servicoSelectReserva" class="w-full p-2.5 bg-gray-50 border rounded-lg text-sm">
                             <option value="">Selecione a categoria...</option>
                         </select>
                     </div>
                 </div>
-
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Motorista</label>
-                        <select id="modalDriverSelect" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm"></select>
+                        <select id="modalDriverSelect" class="w-full p-2.5 bg-gray-50 border rounded-lg text-sm"></select>
                     </div>
                     <div>
                         <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Voo (Opcional)</label>
-                        <input type="text" id="modalFlight" placeholder="Ex: AR1250" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm">
+                        <input type="text" id="modalFlight" placeholder="Ex: AR1250" class="w-full p-2.5 bg-gray-50 border rounded-lg text-sm">
                     </div>
                 </div>
-
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Cobrança Cliente ($)</label>
-                        <input type="number" id="modalValueTotal" required class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm">
+                        <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Cobrança ($)</label>
+                        <input type="number" id="modalValueTotal" required class="w-full p-2.5 bg-gray-50 border rounded-lg text-sm">
                     </div>
                     <div>
-                        <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Custo Repasse ($)</label>
-                        <input type="number" id="modalValueDriver" required class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm">
+                        <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Repasse ($)</label>
+                        <input type="number" id="modalValueDriver" required class="w-full p-2.5 bg-gray-50 border rounded-lg text-sm">
                     </div>
                 </div>
-
                 <div>
                     <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Descrição / Detalhe</label>
-                    <textarea id="modalDesc" rows="2" placeholder="Detalhes da rota..." class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm"></textarea>
+                    <textarea id="modalDesc" rows="2" placeholder="Detalhes extras..." class="w-full p-2.5 bg-gray-50 border rounded-lg text-sm"></textarea>
                 </div>
-
-                <button type="submit" class="w-full py-3 bg-blue-900 text-white font-bold rounded-xl hover:bg-blue-800 transition shadow-md">
-                    Confirmar e Agendar
-                </button>
+                <button type="submit" class="w-full py-3 bg-blue-900 text-white font-bold rounded-xl shadow-md text-sm">Confirmar e Agendar</button>
             </form>
         </div>
     </div>
 
-    <!-- Modal Dossiê Cliente -->
+    <!-- Modal Dossiê do Cliente -->
     <div id="modalBioCliente" class="fixed inset-0 bg-gray-950/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white w-full max-w-lg rounded-2xl p-6 shadow-2xl space-y-4">
-            <h3 class="text-lg font-bold text-blue-900 mb-2" id="modalNomeCliente">Dossiê do Cliente</h3>
+            <h3 class="text-lg font-bold text-blue-900" id="modalNomeCliente">Dossiê do Cliente</h3>
             <div class="space-y-4">
-                <textarea id="modalBioInput" rows="4" placeholder="Biografia, preferências e histórico..." class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-sm"></textarea>
-                <input type="text" id="modalTagsInput" placeholder="Tags (Ex: #vinho #familia)" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-sm">
+                <textarea id="modalBioInput" rows="4" placeholder="Biografia, preferências..." class="w-full p-3 bg-gray-50 border rounded-xl text-sm"></textarea>
+                <input type="text" id="modalTagsInput" placeholder="Tags (Ex: #vinho #familia)" class="w-full p-3 bg-gray-50 border rounded-xl text-sm">
             </div>
             <div class="flex gap-3 mt-6">
                 <button onclick="fecharModalBio()" class="flex-1 py-2 bg-gray-100 rounded-xl font-bold text-sm">Cancelar</button>
@@ -549,7 +570,26 @@
         </div>
     </div>
 
-    <!-- Toast de Notificação -->
+    <!-- Modal Cadastro Novo Cliente -->
+    <div id="modalNovoCliente" class="hidden fixed inset-0 bg-gray-900/50 flex items-center justify-center z-50 p-4">
+        <div class="bg-white p-8 rounded-2xl w-full max-w-lg shadow-2xl space-y-4">
+            <h2 class="text-xl font-bold text-gray-900 mb-2">Cadastrar Novo Cliente</h2>
+            <input type="text" id="inputNome" placeholder="Nome Completo" class="w-full p-3 border rounded-xl">
+            <input type="text" id="inputWhatsapp" placeholder="WhatsApp" class="w-full p-3 border rounded-xl">
+            <textarea id="inputBio" rows="3" placeholder="Observações..." class="w-full p-3 border rounded-xl"></textarea>
+            <div class="flex justify-end gap-3 mt-6">
+                <button onclick="document.getElementById('modalNovoCliente').classList.add('hidden')" class="px-6 py-2 text-gray-600 font-bold">Cancelar</button>
+                <button onclick="salvarNovoCliente()" class="px-6 py-2 bg-blue-900 text-white rounded-xl font-bold">Salvar Cliente</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botão Flutuante Novo Cliente -->
+    <button onclick="document.getElementById('modalNovoCliente').classList.remove('hidden')" class="fixed bottom-8 right-8 bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-8 rounded-full shadow-2xl z-50 flex items-center gap-2">
+        <span class="text-xl">+</span> Novo Cliente
+    </button>
+
+    <!-- Toast Notificação Geral -->
     <div id="toast" class="fixed bottom-24 lg:bottom-6 right-6 bg-gray-900 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none z-50">
         <i class="fas fa-check-circle text-emerald-400" id="toast-icon"></i>
         <span id="toastMessage">Ação realizada!</span>
@@ -563,45 +603,48 @@
         <button onclick="switchTab('financeiro')" id="mobile-nav-fin" class="text-gray-400 py-1 flex flex-col items-center"><i class="fas fa-wallet text-lg"></i><span class="text-[10px] mt-0.5">Financeiro</span></button>
     </nav>
 
-    <!-- LÓGICA JAVASCRIPT UNIFICADA -->
+    <!-- LÓGICA DO CRM UNIFICADO -->
     <script>
         let databaseAgenda = [];
         let drivers = [];
         let selectedDay = new Date().toISOString().split('T')[0];
         let selectedCategory = 'todos';
 
+        // Garante referência unificada entre todas as funções
+        const clienteSupabase = window.supabaseClient;
+
         async function initSupabase() {
-            const savedUrl = localStorage.getItem('supabase_url') || 'https://xjjflsdtaruzaekadqoq.supabase.co';
-            const savedKey = localStorage.getItem('supabase_key') || 'sb_publishable_4w28HiSW0UqCywyYMbm-8w_LVHV2ltM';
+            const savedUrl = localStorage.getItem('supabase_url') || supabaseUrl;
+            const savedKey = localStorage.getItem('supabase_key') || supabaseKey;
 
-            const statusBtn = document.getElementById('db-status-btn');
-            const statusText = document.getElementById('db-status-text');
-            const dbIcon = document.getElementById('db-icon');
+            try {
+                window.supabaseClient = supabase.createClient(savedUrl, savedKey);
+                window.clienteSupabase = window.supabaseClient;
+                
+                const { error } = await window.supabaseClient.from('motoristas').select('*').limit(1);
+                if (error) throw error;
 
-            if (savedUrl && savedKey) {
-                try {
-                    window.supabaseClient = supabase.createClient(savedUrl, savedKey);
-                    window.clienteSupabase = window.supabaseClient;
-                    
-                    const { error } = await window.supabaseClient.from('motoristas').select('*').limit(1);
-                    if (error) throw error;
-
-                    window.isConnectedToSupabase = true;
-                    if (statusBtn) {
-                        statusBtn.className = "flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold transition border border-emerald-500/30 bg-emerald-500/10 text-emerald-600";
-                        statusText.innerText = "Supabase Conectado";
-                        dbIcon.className = "fas fa-cloud text-emerald-500 animate-pulse";
-                    }
-                    loadRealData();
-                } catch (e) {
-                    console.error("Erro ao conectar:", e);
-                    window.isConnectedToSupabase = false;
-                }
+                window.isConnectedToSupabase = true;
+                document.getElementById('db-status-text').innerText = "Supabase Conectado";
+                document.getElementById('db-icon').className = "fas fa-cloud text-emerald-500 animate-pulse";
+                
+                await loadRealData();
+            } catch (e) {
+                console.error("Erro na conexão com Supabase:", e);
+                window.isConnectedToSupabase = false;
+                switchToSimulationMode();
             }
         }
 
+        function switchToSimulationMode() {
+            window.isConnectedToSupabase = false;
+            document.getElementById('db-status-text').innerText = "Modo Simulação";
+            document.getElementById('db-icon').className = "fas fa-database text-amber-400";
+        }
+
         async function loadRealData() {
-            if (!window.supabaseClient) return;
+            if (!window.isConnectedToSupabase || !window.supabaseClient) return;
+
             try {
                 let { data: dbDrivers } = await window.supabaseClient.from('motoristas').select('*');
                 if (dbDrivers) {
@@ -647,34 +690,38 @@
                 renderFinanceiro();
                 updateDriverDropdowns();
             } catch (err) {
-                console.error("Erro no carregamento real:", err);
+                console.error("Erro ao carregar dados:", err);
             }
         }
 
         function switchTab(tabId) {
-            document.querySelectorAll('.view-section').forEach(v => v.classList.add('hidden'));
-            const el = document.getElementById('view-' + tabId);
-            if (el) el.classList.remove('hidden');
+            document.querySelectorAll('.view-section').forEach(view => view.classList.add('hidden'));
+            const element = document.getElementById('view-' + tabId);
+            if (element) element.classList.remove('hidden');
 
             if (tabId === 'dashboard') renderDashboard();
-            else if (tabId === 'agenda') renderAgenda();
+            else if (tabId === 'agenda') {
+                gerarDiasAgenda();
+                renderAgenda();
+            }
             else if (tabId === 'motoristas') renderDrivers();
             else if (tabId === 'financeiro') renderFinanceiro();
             else if (tabId === 'clientes') renderClientes();
         }
 
         function renderDashboard() {
-            const hoje = databaseAgenda.filter(item => String(item.dia) === String(selectedDay));
+            const hoje = databaseAgenda.filter(item => String(item.dia || '').trim() === String(selectedDay));
+            
             document.getElementById('dash-chegadas-hoje').innerText = hoje.filter(i => i.tipo === 'transfer').length;
             document.getElementById('dash-passeios-hoje').innerText = hoje.filter(i => i.tipo === 'passeio').length;
             document.getElementById('dash-drivers-count').innerText = drivers.length;
             
-            const fatTotal = databaseAgenda.reduce((acc, cur) => acc + (Number(cur.valorCliente) || 0), 0);
-            document.getElementById('dash-faturamento').innerText = `$ ${fatTotal.toLocaleString()}`;
+            const totalMes = databaseAgenda.reduce((sum, i) => sum + (Number(i.valorCliente) || 0), 0);
+            document.getElementById('dash-faturamento').innerText = `$ ${totalMes.toLocaleString()}`;
 
             const container = document.getElementById('dashActivitiesContainer');
             if (!container) return;
-            container.innerHTML = hoje.length === 0 ? `<p class="text-xs text-gray-400 py-3 text-center">Nenhuma atividade hoje.</p>` : '';
+            container.innerHTML = hoje.length === 0 ? `<p class="text-xs text-gray-400 py-3 text-center">Nenhuma atividade para esta data.</p>` : '';
 
             hoje.forEach(item => {
                 container.innerHTML += `
@@ -691,108 +738,246 @@
         async function renderAgenda() {
             const container = document.getElementById('timelineContainer');
             if (!container) return;
+            
+            let list = [...databaseAgenda].filter(item => String(item.dia || '').trim() === String(selectedDay));
+            if (selectedCategory !== 'todos') list = list.filter(i => i.tipo === selectedCategory);
+            list.sort((a, b) => String(a.hora || '').localeCompare(String(b.hora || '')));
 
-            let list = databaseAgenda.filter(item => String(item.dia) === String(selectedDay));
-            if (selectedCategory !== 'todos') list = list.filter(item => item.tipo === selectedCategory);
-            list.sort((a, b) => String(a.hora).localeCompare(String(b.hora)));
-
-            document.getElementById('count-todos').innerText = databaseAgenda.filter(i => String(i.dia) === String(selectedDay)).length;
-            document.getElementById('count-transfers').innerText = databaseAgenda.filter(i => String(i.dia) === String(selectedDay) && i.tipo === 'transfer').length;
-            document.getElementById('count-passeios').innerText = databaseAgenda.filter(i => String(i.dia) === String(selectedDay) && i.tipo === 'passeio').length;
+            document.getElementById('count-todos').innerText = databaseAgenda.filter(i => String(i.dia || '').trim() === String(selectedDay)).length;
+            document.getElementById('count-transfers').innerText = databaseAgenda.filter(i => String(i.dia || '').trim() === String(selectedDay) && i.tipo === 'transfer').length;
+            document.getElementById('count-passeios').innerText = databaseAgenda.filter(i => String(i.dia || '').trim() === String(selectedDay) && i.tipo === 'passeio').length;
 
             if (list.length === 0) {
-                container.innerHTML = `<div class="p-8 text-center bg-white border border-dashed border-gray-200 rounded-2xl"><p class="text-gray-400 text-sm">Nenhuma atividade para esta data.</p></div>`;
+                container.innerHTML = `<div class="text-center py-8 text-gray-400 text-xs">Nenhum serviço agendado para ${selectedDay}.</div>`;
                 return;
             }
 
             container.innerHTML = list.map(item => `
-                <div class="bg-white p-4 sm:p-5 rounded-2xl border-l-4 border-blue-900 shadow-sm border border-gray-100 flex justify-between items-center">
-                    <div>
-                        <div class="flex items-center gap-2">
-                            <span class="text-sm font-black text-gray-900">${item.hora}</span>
-                            <h4 class="font-bold text-gray-800 text-sm">${item.cliente}</h4>
+                <div class="relative bg-white p-4 rounded-2xl shadow-sm border border-gray-100 mb-3 border-l-4 border-blue-900">
+                    <div class="flex items-start gap-3">
+                        <div class="text-center min-w-[50px] bg-gray-50 px-2 py-1.5 rounded-lg border">
+                            <span class="block text-sm font-black text-gray-900">${item.hora}</span>
+                            <span class="text-[9px] font-bold text-gray-400 uppercase">${item.tipo}</span>
                         </div>
-                        <p class="text-xs text-gray-600 mt-1"><i class="fas fa-map-marker-alt text-gray-400"></i> ${item.localizacao}</p>
-                    </div>
-                    <span class="text-xs bg-blue-50 text-blue-700 font-bold px-2 py-1 rounded">${item.motorista}</span>
-                </div>`).join('');
-        }
-
-        function renderDrivers() {
-            const container = document.getElementById('driversList');
-            if (!container) return;
-            container.innerHTML = drivers.map(d => `
-                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between">
-                    <div>
-                        <h3 class="font-bold text-gray-800 text-base">${d.nome}</h3>
-                        <p class="text-xs text-gray-500 mt-1">🚗 ${d.veiculo} (${d.placa})</p>
-                        <p class="text-xs text-emerald-600 font-bold mt-2">💵 ${d.valor} ${d.moeda}</p>
+                        <div class="space-y-1 flex-1">
+                            <h4 class="font-extrabold text-gray-800 text-sm">${item.cliente}</h4>
+                            <p class="text-xs text-gray-600"><i class="fas fa-map-marker-alt text-gray-400"></i> ${item.localizacao}</p>
+                        </div>
                     </div>
                 </div>`).join('');
-            document.getElementById('activeCount').innerText = drivers.length;
-        }
-
-        function renderFinanceiro() {
-            const body = document.getElementById('financeTableBody');
-            if (!body) return;
-            body.innerHTML = '';
-            let tFat = 0, tRep = 0, tLuc = 0, tPen = 0;
-
-            databaseAgenda.forEach(item => {
-                const vc = Number(item.valorCliente) || 0;
-                const vm = Number(item.valorMotorista) || 0;
-                const luc = vc - vm;
-                tFat += vc; tRep += vm; tLuc += luc;
-                if (!item.pagoCliente) tPen += vc;
-
-                body.innerHTML += `
-                    <tr class="hover:bg-gray-50/50 transition">
-                        <td class="p-4 font-bold text-gray-900">${item.cliente}</td>
-                        <td class="p-4">${item.motorista}</td>
-                        <td class="p-4 text-right font-bold text-blue-900">$ ${vc}</td>
-                        <td class="p-4 text-right font-bold text-red-600">$ ${vm}</td>
-                        <td class="p-4 text-right font-black text-emerald-600">$ ${luc}</td>
-                        <td class="p-4 text-center"><span class="px-2 py-1 bg-amber-100 text-amber-800 rounded font-bold text-[10px]">Pendente</span></td>
-                        <td class="p-4 text-center"><span class="px-2 py-1 bg-red-100 text-red-800 rounded font-bold text-[10px]">A pagar</span></td>
-                    </tr>`;
-            });
-
-            document.getElementById('fin-faturamento').innerText = `$ ${tFat.toLocaleString()}`;
-            document.getElementById('fin-repasses').innerText = `$ ${tRep.toLocaleString()}`;
-            document.getElementById('fin-lucro').innerText = `$ ${tLuc.toLocaleString()}`;
-            document.getElementById('fin-pendente').innerText = `$ ${tPen.toLocaleString()}`;
         }
 
         function gerarDiasAgenda() {
             const container = document.getElementById('containerDiasAgenda');
             if (!container) return;
             container.innerHTML = '';
-            const hoje = new Date();
 
+            const hoje = new Date();
             for (let i = -3; i <= 3; i++) {
                 const d = new Date();
                 d.setDate(hoje.getDate() + i);
-                const str = d.toISOString().split('T')[0];
-                const isSel = str === selectedDay;
+                const diaStr = d.toISOString().split('T')[0];
+                const isSelected = diaStr === selectedDay;
 
                 container.innerHTML += `
-                    <div data-date="${str}" onclick="selectDay('${str}')" class="day-btn cursor-pointer min-w-[65px] p-3 rounded-xl text-center transition ${isSel ? 'bg-blue-900 text-white shadow-md' : 'bg-white hover:bg-gray-100 text-gray-700 border border-gray-100'}">
-                        <span class="block text-xs uppercase ${isSel ? 'text-blue-200' : 'text-gray-500'}">${d.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '')}</span>
+                    <div data-date="${diaStr}" onclick="selectDay('${diaStr}')" class="day-btn cursor-pointer min-w-[65px] p-3 rounded-xl text-center transition ${isSelected ? 'bg-blue-900 text-white shadow-md' : 'bg-white hover:bg-gray-100 text-gray-700 border'}">
+                        <span class="block text-xs uppercase ${isSelected ? 'text-blue-200' : 'text-gray-500'}">${d.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '')}</span>
                         <span class="text-lg font-bold">${d.getDate()}</span>
                     </div>`;
             }
         }
 
-        function selectDay(day) {
-            selectedDay = day;
+        function selectDay(dayStr) {
+            selectedDay = dayStr;
             gerarDiasAgenda();
             renderAgenda();
             renderDashboard();
         }
 
-        function filterCategory(cat) {
-            selectedCategory = cat;
-            renderAgenda();
+        async function renderClientes() {
+            const container = document.getElementById('clientesList');
+            if (!container) return;
+            
+            const { data, error } = await clienteSupabase.from('clientes').select('*').order('nome', { ascending: true });
+            if (error) return;
+
+            container.innerHTML = '';
+            data.forEach(cliente => {
+                container.innerHTML += `
+                    <div class="p-4 bg-white border border-gray-100 rounded-xl flex items-center justify-between">
+                        <div>
+                            <h3 class="font-bold text-gray-900">${cliente.nome}</h3>
+                            <p class="text-sm text-gray-500">${cliente.whatsapp || 'Sem WhatsApp'}</p>
+                        </div>
+                        <button onclick="abrirModalBio('${cliente.nome}')" class="px-3 py-1 bg-blue-50 text-blue-700 rounded-lg text-xs font-bold">Editar Dossiê</button>
+                    </div>`;
+            });
+        }
+
+        async function abrirModalBio(nome) {
+            document.getElementById('modalBioInput').value = '';
+            document.getElementById('modalTagsInput').value = '';
+            document.getElementById('modalNomeCliente').innerText = 'Dossiê: ' + nome;
+
+            const { data } = await clienteSupabase.from('clientes').select('biografia, tags').eq('nome', nome).maybeSingle();
+            if (data) {
+                document.getElementById('modalBioInput').value = data.biografia || '';
+                document.getElementById('modalTagsInput').value = data.tags || '';
+            }
+            document.getElementById('modalBioCliente').classList.remove('hidden');
+        }
+
+        function fecharModalBio() {
+            document.getElementById('modalBioCliente').classList.add('hidden');
+        }
+
+        async function salvarBio() {
+            const nome = document.getElementById('modalNomeCliente').innerText.replace('Dossiê: ', '');
+            const bio = document.getElementById('modalBioInput').value;
+            const tags = document.getElementById('modalTagsInput').value;
+
+            const { error } = await clienteSupabase.from('clientes').update({ biografia: bio, tags: tags }).eq('nome', nome);
+            if (error) alert("Erro ao salvar: " + error.message);
+            else {
+                showToast("Dossiê salvo com sucesso!");
+                fecharModalBio();
+                renderClientes();
+            }
+        }
+
+        async function salvarNovoCliente() {
+            const nome = document.getElementById('inputNome').value;
+            const whatsapp = document.getElementById('inputWhatsapp').value;
+            const biografia = document.getElementById('inputBio').value;
+
+            if (!nome || !whatsapp) return alert("Preencha nome e WhatsApp!");
+
+            const { error } = await clienteSupabase.from('clientes').insert([{ nome, whatsapp, biografia }]);
+            if (error) alert("Erro: " + error.message);
+            else {
+                document.getElementById('modalNovoCliente').classList.add('hidden');
+                renderClientes();
+                showToast("Cliente cadastrado!");
+            }
+        }
+
+        function renderFinanceiro() {
+            const tbody = document.getElementById('financeTableBody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            let totalFat = 0, totalRep = 0, totalLucro = 0, totalPend = 0;
+
+            databaseAgenda.forEach(item => {
+                const fat = Number(item.valorCliente) || 0;
+                const rep = Number(item.valorMotorista) || 0;
+                const lucro = fat - rep;
+
+                totalFat += fat;
+                totalRep += rep;
+                totalLucro += lucro;
+                if (!item.pagoCliente) totalPend += fat;
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-gray-50">
+                        <td class="p-4 font-bold text-gray-900">${item.cliente}</td>
+                        <td class="p-4">${item.motorista}</td>
+                        <td class="p-4 text-right font-bold text-blue-900">$ ${fat}</td>
+                        <td class="p-4 text-right font-bold text-red-600">$ ${rep}</td>
+                        <td class="p-4 text-right font-black text-emerald-600">$ ${lucro}</td>
+                        <td class="p-4 text-center"><span class="px-2 py-1 bg-emerald-100 text-emerald-800 rounded text-[10px] font-bold">Pago</span></td>
+                        <td class="p-4 text-center"><span class="px-2 py-1 bg-amber-100 text-amber-800 rounded text-[10px] font-bold">Pendente</span></td>
+                    </tr>`;
+            });
+
+            document.getElementById('fin-faturamento').innerText = `$ ${totalFat.toLocaleString()}`;
+            document.getElementById('fin-repasses').innerText = `$ ${totalRep.toLocaleString()}`;
+            document.getElementById('fin-lucro').innerText = `$ ${totalLucro.toLocaleString()}`;
+            document.getElementById('fin-pendente').innerText = `$ ${totalPend.toLocaleString()}`;
+        }
+
+        function renderDrivers() {
+            const container = document.getElementById('driversList');
+            if (!container) return;
+            container.innerHTML = drivers.map(d => `
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+                    <h3 class="font-bold text-gray-800 text-base">${d.nome}</h3>
+                    <p class="text-xs text-gray-600 mt-1">🚗 ${d.veiculo} (${d.placa})</p>
+                    <p class="text-xs text-emerald-600 font-bold mt-2">💵 ${d.valor} ${d.moeda}</p>
+                </div>`).join('');
+        }
+
+        function updateDriverDropdowns() {
+            const select = document.getElementById('modalDriverSelect');
+            if (!select) return;
+            select.innerHTML = drivers.map(d => `<option value="${d.id}">${d.nome} (${d.veiculo})</option>`).join('');
+        }
+
+        async function carregarMenuCategorias() {
+            const select = document.getElementById('catSelectReserva');
+            if (!select) return;
+            const { data } = await clienteSupabase.from('categorias_servicos').select('*');
+            if (data) {
+                select.innerHTML = '<option value="">Selecione...</option>';
+                data.forEach(c => select.innerHTML += `<option value="${c.nome}">${c.nome}</option>`);
+            }
+        }
+
+        async function filtrarServicosPorCategoria() {
+            const cat = document.getElementById('catSelectReserva').value;
+            const selectServicos = document.getElementById('servicoSelectReserva');
+            const { data } = await clienteSupabase.from('servicos').select('*').eq('categoria', cat);
+            if (data) {
+                selectServicos.innerHTML = '<option value="">Selecione um serviço...</option>';
+                data.forEach(s => selectServicos.innerHTML += `<option value="${s.nome}" data-preco="${s.preco}">${s.nome} - $ ${s.preco}</option>`);
+            }
+        }
+
+        document.getElementById('servicoSelectReserva')?.addEventListener('change', function() {
+            const preco = this.options[this.selectedIndex].getAttribute('data-preco');
+            if (preco) document.getElementById('modalValueTotal').value = preco;
+        });
+
+        async function saveQuickReserva(event) {
+            event.preventDefault();
+            const clientName = document.getElementById('modalClient').value.trim();
+            const clientPhone = document.getElementById('modalPhone').value.trim();
+            const date = document.getElementById('modalDate').value || selectedDay;
+            const time = document.getElementById('modalTime').value;
+            const cat = document.getElementById('catSelectReserva').value;
+            const servico = document.getElementById('servicoSelectReserva').value;
+            const desc = document.getElementById('modalDesc').value;
+            const driverId = document.getElementById('modalDriverSelect').value;
+            const valCliente = parseFloat(document.getElementById('modalValueTotal').value) || 0;
+            const valMotorista = parseFloat(document.getElementById('modalValueDriver').value) || 0;
+
+            try {
+                let { data: client } = await clienteSupabase.from('clientes').select('id').eq('whatsapp', clientPhone).maybeSingle();
+                let clientId = client ? client.id : null;
+
+                if (!clientId) {
+                    const { data: newC } = await clienteSupabase.from('clientes').insert([{ nome: clientName, whatsapp: clientPhone, biografia: '' }]).select();
+                    clientId = newC[0].id;
+                }
+
+                await clienteSupabase.from('reservas').insert([{
+                    cliente_id: clientId,
+                    motorista_id: driverId,
+                    dia: date,
+                    hora: time,
+                    tipo: cat || 'transfer',
+                    localizacao: (servico ? servico + " - " : "") + desc,
+                    valor_total: valCliente,
+                    valor_repasse_motorista: valMotorista,
+                    status: "confirmado"
+                }]);
+
+                showToast("Reserva agendada com sucesso!");
+                closeQuickAddModal();
+                await loadRealData();
+            } catch (err) {
+                alert("Erro ao agendar: " + err.message);
+            }
         }
 
         function openQuickAddModal() {
@@ -816,122 +1001,19 @@
             document.getElementById('dbSettingsModal').classList.add('opacity-0', 'pointer-events-none');
         }
 
-        function saveDbConfig() {
-            const url = document.getElementById('dbUrlInput').value.trim();
-            const key = document.getElementById('dbKeyInput').value.trim();
-            if (url && key) {
-                localStorage.setItem('supabase_url', url);
-                localStorage.setItem('supabase_key', key);
-                closeDbSettingsModal();
-                initSupabase();
-            }
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMessage').innerText = message;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 2500);
         }
 
-        function clearDbConfig() {
-            localStorage.removeItem('supabase_url');
-            localStorage.removeItem('supabase_key');
-            closeDbSettingsModal();
-        }
-
-        function showToast(msg) {
-            const t = document.getElementById('toast');
-            document.getElementById('toastMessage').innerText = msg;
-            t.classList.remove('translate-y-20', 'opacity-0');
-            setTimeout(() => t.classList.add('translate-y-20', 'opacity-0'), 2500);
-        }
-
-        async function carregarMenuCategorias() {
-            const select = document.getElementById('catSelectReserva');
-            if (!select || !window.supabaseClient) return;
-            const { data } = await window.supabaseClient.from('categorias_servicos').select('*');
-            if (data) {
-                select.innerHTML = '<option value="">Selecione...</option>';
-                data.forEach(c => select.innerHTML += `<option value="${c.nome}">${c.nome}</option>`);
-            }
-        }
-
-        async function filtrarServicosPorCategoria() {
-            const cat = document.getElementById('catSelectReserva').value;
-            const selectServ = document.getElementById('servicoSelectReserva');
-            if (!window.supabaseClient) return;
-            const { data } = await window.supabaseClient.from('servicos').select('*').eq('categoria', cat);
-            selectServ.innerHTML = '<option value="">Selecione...</option>';
-            if (data) {
-                data.forEach(s => selectServ.innerHTML += `<option value="${s.nome}" data-preco="${s.preco}">${s.nome} - $ ${s.preco}</option>`);
-            }
-        }
-
-        document.getElementById('servicoSelectReserva').addEventListener('change', function() {
-            const opt = this.options[this.selectedIndex];
-            const p = opt.getAttribute('data-preco');
-            if (p) document.getElementById('modalValueTotal').value = p;
-        });
-
-        async function saveQuickReserva(event) {
-            event.preventDefault();
-            const clientName = document.getElementById('modalClient').value;
-            const clientPhone = document.getElementById('modalPhone').value;
-            const date = document.getElementById('modalDate').value || selectedDay;
-            const time = document.getElementById('modalTime').value;
-            const cat = document.getElementById('catSelectReserva').value;
-            const servico = document.getElementById('servicoSelectReserva').value;
-            const desc = document.getElementById('modalDesc').value;
-            const valC = parseFloat(document.getElementById('modalValueTotal').value) || 0;
-            const valM = parseFloat(document.getElementById('modalValueDriver').value) || 0;
-
-            if (window.supabaseClient) {
-                try {
-                    let { data: clientData } = await window.supabaseClient.from('clientes').select('id').eq('whatsapp', clientPhone).maybeSingle();
-                    let clientId = clientData ? clientData.id : null;
-
-                    if (!clientId) {
-                        let { data: newC } = await window.supabaseClient.from('clientes').insert([{ nome: clientName, whatsapp: clientPhone, biografia: '' }]).select();
-                        clientId = newC[0].id;
-                    }
-
-                    await window.supabaseClient.from('reservas').insert([{
-                        cliente_id: clientId,
-                        dia: date,
-                        hora: time,
-                        tipo: cat || 'transfer',
-                        localizacao: (servico ? servico + " - " : "") + desc,
-                        valor_total: valC,
-                        valor_repasse_motorista: valM,
-                        status: 'confirmado'
-                    }]);
-
-                    showToast("Reserva salva com sucesso!");
-                    closeQuickAddModal();
-                    loadRealData();
-                } catch (e) {
-                    console.error(e);
-                    showToast("Erro ao salvar no banco.");
-                }
-            }
-        }
-
-        async function renderClientes() {
-            const container = document.getElementById('clientesList');
-            if (!container || !window.supabaseClient) return;
-            const { data } = await window.supabaseClient.from('clientes').select('*');
-            container.innerHTML = '';
-            if (data) {
-                data.forEach(c => {
-                    container.innerHTML += `
-                        <div class="p-4 bg-white border border-gray-100 rounded-xl flex items-center justify-between">
-                            <div>
-                                <h3 class="font-bold text-gray-900">${c.nome}</h3>
-                                <p class="text-sm text-gray-500">${c.whatsapp || 'Sem WhatsApp'}</p>
-                            </div>
-                            <span class="text-xs bg-blue-50 text-blue-700 px-3 py-1 rounded-lg font-bold">Cliente Ativo</span>
-                        </div>`;
-                });
-            }
-        }
-
-        // Inicialização Definitiva
-        document.addEventListener('DOMContentLoaded', () => {
-            initSupabase();
+        window.addEventListener('DOMContentLoaded', async () => {
+            await initSupabase();
             gerarDiasAgenda();
             switchTab('dashboard');
         });
