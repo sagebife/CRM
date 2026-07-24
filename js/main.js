@@ -85,14 +85,39 @@ window.renderAgenda = function() {
 };
 
 window.gerarDiasAgenda = function() {
-    const container = document.getElementById('containerDiasAgenda');
-    if (!container) return;
-    container.innerHTML = `
-        <div class="p-3 bg-blue-900 text-white rounded-xl text-center">
-            <span class="block text-xs uppercase">Hoje</span>
-            <span class="text-lg font-bold">${new Date().getDate()}</span>
+    const containerDias = document.getElementById('containerDiasAgenda');
+    if (!containerDias) return;
+    containerDias.innerHTML = '';
+
+    const hoje = new Date();
+
+    for (let i = -3; i <= 3; i++) {
+        const d = new Date();
+        d.setDate(hoje.getDate() + i);
+
+        const anoLoc = d.getFullYear();
+        const mesLoc = String(d.getMonth() + 1).padStart(2, '0');
+        const diaLoc = String(d.getDate()).padStart(2, '0');
+        const diaStr = `${anoLoc}-${mesLoc}-${diaLoc}`;
+        
+        const diaNumero = d.getDate();
+        const diaSemana = d.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '');
+        const isSelected = diaStr === window.selectedDay;
+
+        containerDias.innerHTML += `
+        <div data-date="${diaStr}" onclick="selectDay('${diaStr}')" class="day-btn cursor-pointer min-w-[65px] p-3 rounded-xl text-center transition ${isSelected ? 'bg-blue-900 text-white shadow-md border border-blue-900' : 'bg-white hover:bg-gray-100 text-gray-700 border border-gray-100'}">
+            <span class="block text-xs uppercase ${isSelected ? 'text-blue-200' : 'text-gray-500'}">${diaSemana}</span>
+            <span class="text-lg font-bold ${isSelected ? 'text-white' : 'text-gray-800'}">${diaNumero}</span>
         </div>
-    `;
+        `;
+    }
+};
+
+window.selectDay = function(day) {
+    window.selectedDay = day;
+    gerarDiasAgenda();
+    if (typeof window.renderAgenda === 'function') window.renderAgenda();
+    if (typeof window.renderDashboard === 'function') window.renderDashboard();
 };
 
 window.openDbSettingsModal = function() {
