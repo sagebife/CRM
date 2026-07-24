@@ -15,6 +15,24 @@ window.switchTab = function(tabId) {
     const element = document.getElementById('view-' + tabId);
     if (element) element.classList.remove('hidden');
 
+    const navTabs = ['dashboard', 'agenda', 'motoristas', 'servicos', 'financeiro', 'clientes'];
+    navTabs.forEach(t => {
+        const btnId = t === 'dashboard' ? 'nav-dash' : 
+                      t === 'agenda' ? 'nav-agenda' : 
+                      t === 'motoristas' ? 'nav-moto' : 
+                      t === 'servicos' ? 'nav-serv' : 
+                      t === 'financeiro' ? 'nav-fin' : 'nav-clientes';
+        
+        const btn = document.getElementById(btnId);
+        if (btn) {
+            if (t === tabId) {
+                btn.className = "text-white font-bold border-b-2 border-white pb-1 transition";
+            } else {
+                btn.className = "text-blue-200 hover:text-white font-semibold transition";
+            }
+        }
+    });
+
     if (tabId === 'dashboard') renderDashboard();
     if (tabId === 'agenda') renderAgenda();
     if (tabId === 'motoristas') renderDrivers();
