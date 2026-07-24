@@ -17,11 +17,11 @@ window.switchTab = function(tabId) {
 
     const navTabs = ['dashboard', 'agenda', 'motoristas', 'servicos', 'financeiro', 'clientes'];
     navTabs.forEach(t => {
-        const btnId = t === 'dashboard' ? 'nav-dash' : 
-                      t === 'agenda' ? 'nav-agenda' : 
-                      t === 'motoristas' ? 'nav-moto' : 
-                      t === 'servicos' ? 'nav-serv' : 
-                      t === 'financeiro' ? 'nav-fin' : 'nav-clientes';
+        const btnId = t === 'dashboard' ? 'nav-dash' :
+                      t === 'agenda' ? 'nav-agenda' :
+                      t === 'motoristas' ? 'nav-motoristas' :
+                      t === 'servicos' ? 'nav-servicos' :
+                      t === 'financeiro' ? 'nav-financeiro' : 'nav-clientes';
         
         const btn = document.getElementById(btnId);
         if (btn) {
@@ -33,11 +33,15 @@ window.switchTab = function(tabId) {
         }
     });
 
-    if (tabId === 'dashboard') renderDashboard();
-    if (tabId === 'agenda') renderAgenda();
-    if (tabId === 'motoristas') renderDrivers();
-    if (tabId === 'financeiro') renderFinanceiro(window.databaseAgenda);
-    if (tabId === 'clientes') renderClientes();
+    // Ações específicas de cada aba
+    if (tabId === 'dashboard' && typeof renderDashboard === 'function') renderDashboard();
+    if (tabId === 'agenda') {
+        if (typeof window.gerarDiasAgenda === 'function') window.gerarDiasAgenda();
+        if (typeof renderAgenda === 'function') renderAgenda();
+    }
+    if (tabId === 'motoristas' && typeof renderDrivers === 'function') renderDrivers();
+    if (tabId === 'financeiro' && typeof renderFinanceiro === 'function') renderFinanceiro(window.databaseAgenda);
+    if (tabId === 'clientes' && typeof renderClientes === 'function') renderClientes();
 };
 
 window.showToast = function(message) {
@@ -115,7 +119,7 @@ window.gerarDiasAgenda = function() {
 
 window.selectDay = function(day) {
     window.selectedDay = day;
-    gerarDiasAgenda();
+    window.gerarDiasAgenda();
     if (typeof window.renderAgenda === 'function') window.renderAgenda();
     if (typeof window.renderDashboard === 'function') window.renderDashboard();
 };
